@@ -1,0 +1,20 @@
+<div class="dashbar">
+<CryptologoBanner @project="geoFinger"></CryptologoBanner>
+  
+  <div class="connectinfo">
+    {{#if this.web3service.isConnected}}
+    
+    <div class="account" id="glow-red"><b>&lt;</b> {{nicer-hash this.web3service.selectedAddress}}<b>&gt;</b></div>
+    {{else}}
+    <div class="account" id="glow-red"><b>&lt;</b> not connected <b>&gt;</b></div>
+    {{/if}}
+    <div class="connect-right">
+    {{#if this.web3service.isConnected}}
+    <button class="raise-button with-shadow connectbtn ripple disabled" style="background-color: #da1f1fb2; color: white;" type="button" >CONNECTED</button>
+    {{else}}
+    <button class="raise-button with-shadow connectbtn ripple" style="background-color: #da1f1fb2; color: white;" type="button"  {{action this.connect}}>CONNECT METAMASK</button>
+    {{/if}}
+    </div>
+     </div> 
+
+</div>

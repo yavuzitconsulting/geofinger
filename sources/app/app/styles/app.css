@@ -1,24 +1,43 @@
+
+@import "ember-modal-dialog/ember-modal-structure.css";
+@import "ember-modal-dialog/ember-modal-appearance.css";
+
 body {
 	background-color: #9b9898;
 }
 
-div.content
+div.status
 {
-    font-size: larger;
-    
+    position: fixed;
+    bottom: 30px;
+    background-color: bisque;
+    left: 0px;
+    right: 0px;
+    text-align: center;
+}
+
+div.content
+{   
+     font-size: larger;
     display: flex;
+    top: 100px;
     align-items: center;
     flex-direction: column;
     text-align: center;
+    position: fixed;
+    width: 100%;
+    height: calc(100% - 80px);
 }
 
 div.top{
     background-color: aliceblue;
     width: 100%;
+    left: 0px;
+    position: fixed;
 }
 
 input#message{
-margin-bottom: 4rem;
+margin-bottom: 6rem;
 height: 4rem;
 width: 20rem;
 }
@@ -26,7 +45,7 @@ width: 20rem;
 div.bottom
 {
     position: absolute;
-    bottom: 4rem;
+    bottom: 7rem;
 }
 
 button.mobile
@@ -72,6 +91,144 @@ div.message{
 
 div.footer{
     position: absolute;
-    bottom: 1rem;
+    bottom: 5px;
+    right:10px;
     font-size: small;
 }
+
+
+/* */
+
+
+
+div.dashbar
+{
+    left:0px;
+    background-color: #3e3e3e73;
+    backdrop-filter: blur(4px);
+    width: 100%;
+    height: 80px;
+    position: fixed;
+    z-index: 2147483647;
+    top: 0px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+
+
+    -webkit-animation: fadein 1s; /* Safari, Chrome and Opera > 12.1 */
+       -moz-animation: fadein 1s; /* Firefox < 16 */
+        -ms-animation: fadein 1s; /* Internet Explorer */
+         -o-animation: fadein 1s; /* Opera < 12.1 */
+            animation: fadein 1s;
+}
+
+div.dashbar a{
+    border-bottom:none;
+}
+
+
+button.connectbtn
+{
+    border-radius: 20px;
+    width: 200px;
+}
+div.connectinfo
+{
+    display: flex;
+    justify-content: space-between;
+    right:0;
+    margin-right: 2rem;
+    position: absolute;
+}
+
+div.connectinfo div.account
+{
+    line-height: 45px;
+    margin: 5px 15px 5px 5px;
+
+    b
+    {
+        color: red;
+    }
+}
+
+
+
+.pi-button, .raise-button {
+	letter-spacing: 1px;
+	display: inline-block;
+	position: relative;
+	border-radius: 2px;
+	overflow: hidden;
+	-webkit-transition: 0.2s ease-out;
+	transition: 0.2s ease-out;
+	font-family: sans-serif;
+	cursor:pointer;
+	border: none;
+	margin: 5px;
+	background-color: transparent;
+	text-align: center;
+	color: #444;
+}
+
+.pi-button:focus, .raise-button:focus {
+	outline: none;
+}
+
+.pi-button:hover {
+	box-shadow: 0 3px 6px 0 rgba(0, 0, 0, 0.22), 0 4px 4px 0 rgba(0, 0, 0, 0.35);
+
+	color: #222;
+	text-decoration: none;
+	background-color: rgba(255, 255, 255, 0.6);
+}
+
+.pi-button:active {
+	box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.44), 0 1px 1px 0 rgba(0, 0, 0, 0.68);
+}
+
+
+.pi-button:focus::before {
+	display: block;
+	height: 150px;
+	width: 150px;
+	top: -58px;
+	left: -30px;
+	opacity: 0;
+	content: "";
+	background: #AAA;
+	border-radius: 1000px;
+	position: absolute;
+	animation-name: fade;
+	animation-timing-function: ease-out;
+    animation-duration: 1s;
+	z-index: -2;
+}
+
+@keyframes fade {
+	0% {opacity: 1; transform: scale(0);}
+	50% {opacity: 1; transform: scale(1);}
+    100% {opacity: 0;}
+}
+
+
+.with-shadow {
+	box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.35), 0 1px 1px 0 rgba(0, 0, 0, 0.59);
+	background-color: rgba(255, 255, 255, 0.3);
+}
+
+
+.raise-button:hover {
+	box-shadow: 0 8px 20px 0 rgba(0, 0, 0, 0.3), 0 15px 15px 0 rgba(0, 0, 0, 0.4);
+	background-color: #FFF !important;
+	color: #222 !important;
+}
+
+.raise-button:active {
+	-webkit-transition: 0.05s ease-out;
+	transition: 0.05s ease-out;
+	box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.44), 0 1px 1px 0 rgba(0, 0, 0, 0.68);
+}
+
