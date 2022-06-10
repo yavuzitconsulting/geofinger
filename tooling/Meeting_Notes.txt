@@ -1,0 +1,32 @@
+mit message
+
+~~ gps quadrant in blockchain
+~~~ quadrant als nft
+~~~~ diamond quadrant
+~~~~~ allowance for arrays (staking)
+--- claimtoken per claim
+--- messagetoken per message
+---- claim-bound-messagetoken anzahl an messa hängt von dem geld ab was man beim claim zahlt
+----- user kauft messagetoken und kann eine ablegen, der preis wird vom claimer bestimmt.
+
+- reading messages generates revenue, enough revenue generaters messagetokens (can be converted from revenue to messagetokens)
+- this is an automated system that enables more messages over time, with user
+- more messages generate more revenue, incentive to not claim and hold a place alone.
+- genesis owner, if bought one message, all following messages do not generate revenue
+
+
+layers: default layer (0), blockchain synced layer (1)
+ipfs anbindung an tag 3, for any message content
+likeability (int), likes cost revenue
+issue revenue token per message, genesis message gets 50%, reduce with amt of messages
+smart contract claims quadrants as nft 
+wallet connect via metamask 
+burn revenue token
+kukai app maybe?
+sync blockchain state with db
+
+message-token is a claim based currency, which can be exchanged, the messagetoken.
+genesis claim owner can set currency symbol
+
+
+

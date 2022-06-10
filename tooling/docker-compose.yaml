@@ -1,0 +1,47 @@
+
+services:
+  geofinger-app:
+    image: danlynn/ember-cli:3.27.0
+    environment:
+      - CI=true
+    volumes:
+      - ../sources/app:/myapp
+      - .bash_history:/root/.bash_history
+    tmpfs:
+      - /myapp/tmp
+    ports:
+      - "4200:4200" 
+      - "7021:7021"
+      - "7357:7357"
+      #- "5033:5033"
+    command: bash -c "yarn install && ember server --live-reload-port=7021 --secure-proxy=false --proxy=https://$WSL_WINDOWS_HOST:7033"
+              
+  api:
+    image: mcr.microsoft.com/dotnet/aspnet:6.0
+    volumes:
+      - ../sources/api/binaries:/app
+    ports:
+      - "7033:7033" 
+      #- "5033:5033"
+      - "88:80"
+    command: dotnet /app/GeoFingerApi.dll
+ 
+  db:
+    image: mcr.microsoft.com/mssql/server:latest
+    volumes:
+      - /var/opt/mssql
+      # we copy our scripts onto the container
+      - ./sql:/usr/src/app 
+    user: root
+    working_dir: /usr/src/app 
+    
+    command: sh -c ' chmod +x ./entrypoint.sh; ./entrypoint.sh & /opt/mssql/bin/sqlservr;'
+    environment:
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: Test1234_d
+    
+    ports:
+      - 11433:1433
+ 
+version: '3.5'
+
