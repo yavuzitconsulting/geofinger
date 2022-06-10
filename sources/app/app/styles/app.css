@@ -1,0 +1,77 @@
+body {
+	background-color: #9b9898;
+}
+
+div.content
+{
+    font-size: larger;
+    
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    text-align: center;
+}
+
+div.top{
+    background-color: aliceblue;
+    width: 100%;
+}
+
+input#message{
+margin-bottom: 4rem;
+height: 4rem;
+width: 20rem;
+}
+
+div.bottom
+{
+    position: absolute;
+    bottom: 4rem;
+}
+
+button.mobile
+{    
+    width: 10rem;
+    font-size: 1.1rem;
+    height: 4rem;
+}
+
+
+div.latlon{
+    
+    background: #80808069;
+    border-radius: 2rem;
+    padding: 1.5rem;
+    font-family: monospace;
+    font-size: x-large;
+}
+
+div.messages{
+    background: darkgray;
+    padding: 1.5rem;
+    border-radius: 1rem;
+    min-height: 2rem;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+}
+div.messagetitle {
+    font-size: larger;
+    font-family: sans-serif;
+}div.messagesubtitle {
+    font-size: small;
+    font-family: sans-serif;
+}
+div.message{
+    background: #5f9ea07a;
+    padding: 0.5rem;
+    border-radius: 5px;
+}
+
+div.footer{
+    position: absolute;
+    bottom: 1rem;
+    font-size: small;
+}

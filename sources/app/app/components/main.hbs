@@ -1,0 +1,82 @@
+<div class="content">
+  <div class="top">
+    GeoFinger - v0.06alpha
+  </div>
+  <br />
+  <br />
+  <br />
+  <br />
+  {{#if this.myLocation}}
+  <div class="latlon">
+    <div class="lat">
+      LAT:
+      {{this.lat}}
+    </div>
+    <br />
+    <div class="lon">
+      LON:
+      {{this.lon}}
+    </div>
+  </div>
+  <br />
+  <div class="messages">
+    <div class="messagetitle">
+      LAST MESSAGES
+    </div>
+    <div class="messagesubtitle">
+      Accuracy: 40 Meters
+    </div>
+    <div class="messagelist">
+      {{#each this.lastMessages as |message|}}
+      <div class="message">
+        {{message}}
+      </div>
+      {{/each}}
+    </div>
+  </div>
+  {{else}}
+  <div class="messagetitle">
+    Press START to begin location tracking
+  </div>
+  {{/if}}
+  <br />
+  <br />
+  <br />
+  <br />
+  <br />
+  <br />
+  <div class="bottom">
+    {{#if (not this.isTracking)}}
+
+    {{#if this.displayGeoLocationRequestButton}}
+    <button class="mobile" type="button" {{on 'click' (fn this.requestGeoLocationPermission)}}>
+      ENABLE GEOLOCATION
+    </button>
+    {{else}}
+    <button class="mobile" type="button" {{on 'click' (fn this.setUserLocation)}}>
+      START
+    </button>
+    {{/if}}
+    {{else if (eq this.lat 0)}}
+    <div class="messagetitle">
+      PLEASE WAIT A FEW SECONDS WHILE I FETCH YOUR LOCATION!
+    </div>
+    {{else}}
+    <Input id="message" @type="text" @value={{this.typedMessage}} />
+    <br />
+    <button class="mobile" type="button" {{on 'click' (fn this.leaveMessage)}}>
+      LEAVE MESSAGE
+    </button>
+    <br />
+    <br />
+
+    {{/if}}
+  </div>
+</div>
+<div class="footer">
+  CopyRight:
+  <a href="https://cryptng.com">
+    CryptNG
+  </a>
+  - this service is in development!
+</div>
