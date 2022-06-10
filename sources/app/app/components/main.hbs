@@ -1,3 +1,4 @@
+<DashBar></DashBar>
 <div class="content">
   <div class="top">
     GeoFinger - v0.06alpha
@@ -49,22 +50,22 @@
     {{#if (not this.isTracking)}}
 
     {{#if this.displayGeoLocationRequestButton}}
-    <button class="mobile" type="button" {{on 'click' (fn this.requestGeoLocationPermission)}}>
-      ENABLE GEOLOCATION
+    <button class="mobile" type="button" {{on 'click' this.showHowToRequestGeoLocationPermission}}>
+      PLEASE ENABLE GEOLOCATION
     </button>
     {{else}}
-    <button class="mobile" type="button" {{on 'click' (fn this.setUserLocation)}}>
+    <button class="mobile" type="button" {{on 'click' this.setUserLocation}}>
       START
     </button>
     {{/if}}
-    {{else if (eq this.lat 0)}}
+    {{else if (not this.isAppReady)}}
     <div class="messagetitle">
-      PLEASE WAIT A FEW SECONDS WHILE I FETCH YOUR LOCATION!
+     {{this.bigStatus}}
     </div>
     {{else}}
     <Input id="message" @type="text" @value={{this.typedMessage}} />
     <br />
-    <button class="mobile" type="button" {{on 'click' (fn this.leaveMessage)}}>
+    <button class="mobile" type="button" {{on 'click' this.leaveMessage}}>
       LEAVE MESSAGE
     </button>
     <br />
@@ -80,3 +81,14 @@
   </a>
   - this service is in development!
 </div>
+<StatusBar @message={{this.statusMessage}}></StatusBar>
+
+{{#if this.isShowingModal}}
+  <ModalDialog @onClose={{action "reloadWindow"}} @targetAttachment="center" @translucentOverlay={{true}}>
+  Please enable GeoLocation tracking for this device/website to use this service. <br> <br>
+  1. Press on the "Lock" button in the Address Bar (it may also be an 'i' or another symbol on the left side) <br>
+  2. Select "Permissions" <br>
+  3. Enable LOCATION <br>
+  4. Close this Modal, we will automatically try again.
+  </ModalDialog>
+{{/if}}
