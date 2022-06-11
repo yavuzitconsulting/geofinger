@@ -8,9 +8,11 @@ let _tokens = [];
 contract('GeoFingerToken: full integration', async (accounts) => {
     const [deployerAddress, tokenHolderOneAddress, tokenHolderTwoAddress] = accounts;
    
-    const web3 = new Web3('http://127.0.0.1:9545'); //truffledevelop
-    
-    
+    const web3 = config.network==='develop'? new Web3('http://127.0.0.1:9545'):await (async (config)=>{
+        throw `config.networks[${config.network}].web3Uri not set in truffle-config.js` 
+        return await new Web3(config.networks[config.network].web3Uri); 
+    })(config);
+
     it("should assert true", async function () {
       let token = await tokenContract.deployed();   
       return assert.isTrue(true);
