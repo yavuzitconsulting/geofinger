@@ -4,11 +4,12 @@ const truffleAssert = require('truffle-assertions');
 const Web3 = require('web3');
 const BN = require('bn.js');
 let _tokens = [];  
+
 //truffle test
 contract('GeoFingerToken: full integration', async (accounts) => {
     const [deployerAddress, tokenHolderOneAddress, tokenHolderTwoAddress] = accounts;
    
-    const web3 = config.network==='develop'? new Web3('http://127.0.0.1:9545'):await (async (config)=>{
+    const web3 = config.network==='develop' ||  config.network==='test'? new Web3('http://127.0.0.1:9545'):await (async (config)=>{
         throw `config.networks[${config.network}].web3Uri not set in truffle-config.js` 
         return await new Web3(config.networks[config.network].web3Uri); 
     })(config);
@@ -43,7 +44,7 @@ contract('GeoFingerToken: full integration', async (accounts) => {
 
     it("should allow anyone to retrieve the information if minting is active", async function () {
       let token = await tokenContract.deployed();   
-      let mintingActive = await token.getIsMintingInactive({from: accounts[0]});
+      let mintingActive = await token.getIsMintingActive({from: accounts[0]});
       
       return assert.isFalse(mintingActive);
     });
@@ -57,7 +58,7 @@ contract('GeoFingerToken: full integration', async (accounts) => {
     
     it("should allow to mint a message in a previously unclaimed spot", async function () {
       /*
-        mintMessage(
+        mintMessage(  
         string memory uniCodeMessage,
         uint32 longitude,
         uint32 latitude,
@@ -65,7 +66,8 @@ contract('GeoFingerToken: full integration', async (accounts) => {
     )
       */
       let token = await tokenContract.deployed();   
-      await truffleAssertions.passes(token.mint('test-message',51.5555555,8.8888888, false,{from:accounts[1], value: value}), 'mint failed');
+   //   await debug(token.mintMessage('test-message',51555555,8888888, false,{from:accounts[1]}));
+      await truffleAssertions.passes(token.mintMessage('test-message',515555555,88888888, false,{from:accounts[1], gas:1000000} ), 'mint failed');
     });
 
     
@@ -80,7 +82,7 @@ contract('GeoFingerToken: full integration', async (accounts) => {
     )
       */
       let token = await tokenContract.deployed();   
-      await truffleAssertions.passes(token.mint('test-message',52.5555555,9.8888888, true,{from:accounts[1], value: value}), 'mint failed');
+      await truffleAssertions.passes(token.mintMessage('test-message',525555555,98888888, true,{from:accounts[1]}), 'mint failed');
     });
 
 
@@ -90,7 +92,8 @@ getMessageCoinBalanceForSpot(uint32 longitude, uint32 latitude)
     )
       */
       let token = await tokenContract.deployed();   
-      let balance = await token.getMessageCoinBalanceForSpot(51.5555555,8.8888888);
+      
+      let balance = await token.getMessageCoinBalanceForSpot(515555555,88888888);
       return assert.isTrue(balance > 0);
     });
 
@@ -105,7 +108,7 @@ getMessageCoinBalanceForSpot(uint32 longitude, uint32 latitude)
     )
       */
       let token = await tokenContract.deployed();   
-      await truffleAssertions.passes(token.mint('test-message',52.5555555,9.8888888, true,{from:accounts[1], value: value}), 'mint failed');
+      await truffleAssertions.passes(token.mintMessage('test-message',525555555,98888888, true,{from:accounts[1]}), 'mint failed');
     });
 
       
@@ -114,7 +117,7 @@ getMessageCoinBalanceForSpot(uint32 longitude, uint32 latitude)
 getTeasedMessagesForSpot(uint32 longitude, uint32 latitude)
       */
       let token = await tokenContract.deployed();   
-      let teasedMessages = await token.getTeasedMessagesForSpot(52.5555555,9.8888888);
+      let teasedMessages = await token.getTeasedMessagesForSpot(525555555,98888888);
       return assert.isTrue(teasedMessages.length > 1);
     });
 
@@ -125,7 +128,7 @@ getTeasedMessagesForSpot(uint32 longitude, uint32 latitude)
 readMessage(uint128 messageTokenId)
       */
       let token = await tokenContract.deployed();   
-      let teasedMessages = await token.getTeasedMessagesForSpot(52.5555555,9.8888888);
+      let teasedMessages = await token.getTeasedMessagesForSpot(525555555,98888888);
       let length = teasedMessages[0].length;
       assert.isTrue(length > 0);
       let fullmessage = await token.readMessage(teasedMessages[0].tokenId);
@@ -139,7 +142,7 @@ readMessage(uint128 messageTokenId)
 upvoteMessage(uint128 messageTokenId)
       */
       let token = await tokenContract.deployed();   
-      let teasedMessages = await token.getTeasedMessagesForSpot(52.5555555,9.8888888);
+      let teasedMessages = await token.getTeasedMessagesForSpot(525555555,98888888);
       await truffleAssertions.passes(token.upvoteMessage(teasedMessages[0].tokenId));
     });
 
@@ -149,7 +152,7 @@ upvoteMessage(uint128 messageTokenId)
 convertFameToMessageCoin(uint32 longitude, uint32 latitude)
       */
       let token = await tokenContract.deployed();   
-      await truffleAssertions.passes(token.convertFameToMessageCoin(52.5555555,9.8888888));
+      await truffleAssertions.passes(token.convertFameToMessageCoin(525555555,98888888));
     });
 
               

@@ -34,16 +34,16 @@ contract GeoFingerToken is Context, ERC165, IERC721, IERC721Metadata, Ownable {
     //ERC721
 
     // Mapping from SpotId to TokenId
-    mapping(uint64 => uint256) _claimedSpots;
+    mapping(uint64 => uint256) private _claimedSpots;
 
     // Mapping owner to messageTokenId
-    mapping(uint128 => address) _messageCreators;
+    mapping(uint128 => address) private _messageCreators;
 
     // Mapping of Spots to message coin balances
-    mapping(uint64 => mapping(address => uint16)) _spotWallet;
+    mapping(uint64 => mapping(address => uint16)) internal _spotWallet;
 
     // Mapping of owners to famecoints
-    mapping(address => uint16) _fameWallet;
+    mapping(address => uint16) private _fameWallet;
 
     // Mapping from token ID to approved address
     mapping(uint256 => address) private _tokenApprovals;
@@ -82,7 +82,7 @@ contract GeoFingerToken is Context, ERC165, IERC721, IERC721Metadata, Ownable {
         address addressToUnassign
     );
     event MintedMessage(address sender, uint64 spotId, uint256 messageTokenId);
-    event SpotClaimed(address sender, uint32 tokenId, uint64 spotId);
+    event SpotClaimed(address sender, uint256 tokenId, uint64 spotId);
 
     function setBaseURI(string memory uri) public onlyOwner {
         _baseURL = uri;
@@ -113,9 +113,12 @@ contract GeoFingerToken is Context, ERC165, IERC721, IERC721Metadata, Ownable {
         uint64 spotId = _getSpotIdForCoordinates(longitude, latitude);
 
         if (!_existsSpot(spotId)) {
-            uint32 tokenId = (uint32)(_owners.length);
+            uint256 tokenId = _owners.length;
             _mint(_msgSender(), tokenId);
+            _spotWallet[spotId][_msgSender()]=0;
+            
             _addMessageCoin(spotId);
+            
             _addFameCoin(_msgSender(), 20);
             _claimedSpots[spotId] = tokenId;
             emit SpotClaimed(_msgSender(), tokenId, spotId);
@@ -215,14 +218,14 @@ contract GeoFingerToken is Context, ERC165, IERC721, IERC721Metadata, Ownable {
         returns (uint64)
     {
         //app has to transmit the last 6 characters after decimal point of coordinate
-        uint8 longAngle = (uint8)(longitude / 1000000); //starting from a point on the poles, draw lines in this angle along the longitude of earth
-        uint32 longDecimal100sqm = (longitude - longAngle * 1000000) / 100;
+        uint64 longAngle = uint64(longitude / 1000000); //starting from a point on the poles, draw lines in this angle along the longitude of earth
+        uint64 longDecimal100sqm = uint64((longitude - (longAngle * 1000000)) / 100);
         //longDecimal100sqm needs a transformation --> 10/90 * angel * 100 === 100m for a millionth decimal digit //adapt to changing spot sizes when nearing the poles (imagine a grid on the planet)
 
-        uint32 longSpot = longAngle * 1000000 + longDecimal100sqm * 100;
-        uint8 latAngle = (uint8)(latitude / 1000000);
-        uint32 latDecimal100sqm = (latitude - latAngle * 1000000) / 100; //size of a grid element
-        uint32 latSpot = latAngle * 1000000 + latDecimal100sqm * 100;
+        uint64 longSpot = longAngle * 1000000 + longDecimal100sqm * 100;
+        uint64 latAngle = uint64(latitude / 1000000);
+        uint64 latDecimal100sqm = uint64((latitude - latAngle * 1000000) / 100); //size of a grid element
+        uint64 latSpot = latAngle * 1000000 + latDecimal100sqm * 100;
         uint64 spotId = longSpot * 1000000000 + latSpot; //longSpot is shifted left and latSpot is added
         return spotId;
     }
@@ -232,7 +235,7 @@ contract GeoFingerToken is Context, ERC165, IERC721, IERC721Metadata, Ownable {
     }
 
     function _addMessageCoin(uint64 spotId) internal {
-        _spotWallet[spotId][_msgSender()]++;
+         _spotWallet[spotId][_msgSender()]  =  uint16(_spotWallet[spotId][_msgSender()]  +1);
     }
 
     function _substring(
@@ -297,7 +300,7 @@ contract GeoFingerToken is Context, ERC165, IERC721, IERC721Metadata, Ownable {
         require(_getMessageCoinBalanceForSpot(spotId) > 0);
 
         uint128 messageTokenId = uint128(
-            (_spotMessages[spotId].length) + spotId * _maxMessageTokenPerSpot
+            (_spotMessages[spotId].length) + uint128(spotId) * _maxMessageTokenPerSpot
         );
         _spotMessages[spotId].push(message);
         _voteWallet[messageTokenId] = 0;
