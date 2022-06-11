@@ -15,51 +15,38 @@ import "@openzeppelin/contracts/access/Ownable.sol";
  * the Metadata extension, but not including the Enumerable extension, which is available separately as
  * {ERC721Enumerable}.
  */
-contract GeoFingerToken is
-    Context,
-    ERC165,
-    IERC721,
-    IERC721Metadata,
-    Ownable
-{
+contract GeoFingerToken is Context, ERC165, IERC721, IERC721Metadata, Ownable {
     using Address for address;
     using Strings for uint256;
 
     constructor() {
-        
         _name = "GeoFingerToken";
         _symbol = "gft";
 
         _isMintingActive = true;
-
     }
 
-    
-    struct MessageContainer{
+    struct MessageContainer {
         string message;
         uint128 tokenId;
     }
 
-
     //ERC721
 
-
-    // Mapping from SpotId to TokenId 
+    // Mapping from SpotId to TokenId
     mapping(uint64 => uint256) _claimedSpots;
 
     // Mapping owner to messageTokenId
     mapping(uint128 => address) _messageCreators;
 
-
     // Mapping of Spots to message coin balances
     mapping(uint64 => mapping(address => uint16)) _spotWallet;
-    
+
     // Mapping of owners to famecoints
     mapping(address => uint16) _fameWallet;
 
     // Mapping from token ID to approved address
     mapping(uint256 => address) private _tokenApprovals;
-
 
     // Mapping from owner to operator approvals
     mapping(address => mapping(address => bool)) internal _operatorApprovals;
@@ -67,11 +54,8 @@ contract GeoFingerToken is
     string private _name;
 
     string private _symbol;
-    
 
     bool private _isMintingActive = true;
-
-   
 
     //fileHash to txHash
     //spotId to message array
@@ -82,23 +66,29 @@ contract GeoFingerToken is
 
     //future plans
     uint32 _maxMessageTokenPerSpot = 10000000;
-    
+
     address[] internal _owners;
     string _baseURL;
 
-    event MintedHashMapEvidence(address creator ,uint256 fromHash, uint256 toHash, uint256 tokenId);
-    event AssignedAllowedServiceEvent(address sender ,address addressToAllow);
-    event UnassignedAllowedServiceEvent(address sender ,address addressToUnassign);
-    event MintedMessage(address sender,uint64 spotId, uint256 messageTokenId);
-    event SpotClaimed(address sender,uint32 tokenId,uint64 spotId);
-
+    event MintedHashMapEvidence(
+        address creator,
+        uint256 fromHash,
+        uint256 toHash,
+        uint256 tokenId
+    );
+    event AssignedAllowedServiceEvent(address sender, address addressToAllow);
+    event UnassignedAllowedServiceEvent(
+        address sender,
+        address addressToUnassign
+    );
+    event MintedMessage(address sender, uint64 spotId, uint256 messageTokenId);
+    event SpotClaimed(address sender, uint32 tokenId, uint64 spotId);
 
     function setBaseURI(string memory uri) public onlyOwner {
         _baseURL = uri;
     }
 
-
-    function getIsMintingActive() public view returns (bool){
+    function getIsMintingActive() public view returns (bool) {
         return _isMintingActive;
     }
 
@@ -111,202 +101,226 @@ contract GeoFingerToken is
     }
 
 
-
-    function _getSpotIdForCoordinates(uint32 longitude, uint32 latitude) internal pure returns (uint64)
-    {
-          //app has to transmit the last 6 characters after decimal point of coordinate
-        uint8 longAngle = (uint8)(longitude / 1000000); //starting from a point on the poles, draw lines in this angle along the longitude of earth
-        uint32 longDecimal100sqm =( longitude - longAngle * 1000000 ) / 100;
-        //longDecimal100sqm needs a transformation --> 10/90 * angel * 100 === 100m for a millionth decimal digit //adapt to changing spot sizes when nearing the poles (imagine a grid on the planet)
-       
-        uint32 longSpot = longAngle * 1000000 + longDecimal100sqm * 100;
-        uint8 latAngle = (uint8)(latitude / 1000000);
-        uint32 latDecimal100sqm =( latitude - latAngle * 1000000 ) / 100; //size of a grid element 
-        uint32 latSpot = latAngle * 1000000 + latDecimal100sqm * 100;
-        uint64 spotId = longSpot * 1000000000 + latSpot; //longSpot is shifted left and latSpot is added
-        return spotId;
-    }
-
-    function mintMessage(string memory uniCodeMessage, uint32 longitude, uint32 latitude, bool autoConvertFame) public
-    {
-        require(_isMintingActive, "Mint is currently not active");
+    function mintMessage(
+        string memory uniCodeMessage,
+        uint32 longitude,
+        uint32 latitude,
+        bool autoConvertFame
+    ) public {
+        require(_isMintingActive, "Minting is currently not active");
         require(bytes(uniCodeMessage).length > 0);
-        
-      uint64 spotId = _getSpotIdForCoordinates(longitude, latitude);
 
-        if(!_existsSpot(spotId))
-        {
+        uint64 spotId = _getSpotIdForCoordinates(longitude, latitude);
+
+        if (!_existsSpot(spotId)) {
             uint32 tokenId = (uint32)(_owners.length);
-            _mint(_msgSender(),tokenId);
+            _mint(_msgSender(), tokenId);
             _addMessageCoin(spotId);
             _addFameCoin(_msgSender(), 20);
             _claimedSpots[spotId] = tokenId;
-            emit SpotClaimed(_msgSender(),tokenId, spotId);
+            emit SpotClaimed(_msgSender(), tokenId, spotId);
         }
 
         _mintMessageOnSpot(spotId, uniCodeMessage, autoConvertFame);
     }
 
-    function _existsSpot(uint64 spotId) internal view returns (bool) 
-    {
-        return _claimedSpots[spotId] != 0;
-    }
-
-    function _addMessageCoin(uint64 spotId) internal
-    {
-        _spotWallet[spotId][_msgSender()]++;
-    }
-
-
     //this returns a teaser of the messages
-    function getTeasedMessagesForSpot(uint32 longitude, uint32 latitude) public view returns (MessageContainer[] memory)
+    function getTeasedMessagesForSpot(uint32 longitude, uint32 latitude)
+        public
+        view
+        returns (MessageContainer[] memory)
     {
         uint64 spotId = _getSpotIdForCoordinates(longitude, latitude);
         string[] memory messagesForSpot = _spotMessages[spotId];
-        MessageContainer[] memory messages = new MessageContainer[](messagesForSpot.length);
+        MessageContainer[] memory messages = new MessageContainer[](
+            messagesForSpot.length
+        );
 
-        for (uint i=0; i<messagesForSpot.length; i++) {
-            messages[i] = MessageContainer(substring(messagesForSpot[i], 0, ((uint16)(bytes(messagesForSpot[i]).length / 10))+3),(uint128)(i + spotId * _maxMessageTokenPerSpot));
+        for (uint256 i = 0; i < messagesForSpot.length; i++) {
+            messages[i] = MessageContainer(
+                _substring(
+                    messagesForSpot[i],
+                    0,
+                    ((uint16)(bytes(messagesForSpot[i]).length / 10)) + 3
+                ),
+                (uint128)(i + spotId * _maxMessageTokenPerSpot)
+            );
         }
-        
+
         return messages;
     }
 
-
-    function substring(string memory str, uint startIndex, uint endIndex) public pure returns (string memory) {
-        bytes memory strBytes = bytes(str);
-        bytes memory result = new bytes(endIndex-startIndex);
-        for(uint i = startIndex; i < endIndex; i++) {
-            result[i-startIndex] = strBytes[i];
-        }
-        return string(result);
-    }
-
-    
     //this is important for fame distribution, glory leads to glamour
-    function readMessage(uint128 messageTokenId) public returns (string memory)
+    function readMessage(uint128 messageTokenId)
+        public
+        returns (string memory)
     {
         uint64 spotId = _getSpotIdFromMessageTokenId(messageTokenId);
         require(_fameWallet[_msgSender()] > 0);
         require(_spotMessages[spotId].length > 0);
         _fameWallet[_msgSender()]--;
 
-        _addFameCoin(_messageCreators[messageTokenId],2); // an upvote earns you 1 famecoin1
-        _addFameCoin(_owners[_claimedSpots[spotId]],1); // an upvote earns the spot owner 1 famecoin
-        
-       return _spotMessages[spotId][_getMessageIndexFromMessageTokenId(messageTokenId)];
+        _addFameCoin(_messageCreators[messageTokenId], 2); // an upvote earns you 1 famecoin1
+        _addFameCoin(_owners[_claimedSpots[spotId]], 1); // an upvote earns the spot owner 1 famecoin
 
+        return
+            _spotMessages[spotId][
+                _getMessageIndexFromMessageTokenId(messageTokenId)
+            ];
     }
 
-    function _getMessageIndexFromMessageTokenId(uint128 messageTokenId) internal view returns(uint32)
-    {
-        return (uint32)((messageTokenId) - uint64(messageTokenId / _maxMessageTokenPerSpot)*_maxMessageTokenPerSpot); 
-    }
 
-    function upvoteMessage(uint128 messageTokenId) public 
-    {
+    function upvoteMessage(uint128 messageTokenId) public {
         uint64 spotId = _getSpotIdFromMessageTokenId(messageTokenId);
         require(_fameWallet[_msgSender()] > 0);
-        require(_spotMessages[spotId].length > _getMessageIndexFromMessageTokenId(messageTokenId) );
+        require(
+            _spotMessages[spotId].length >
+                _getMessageIndexFromMessageTokenId(messageTokenId)
+        );
         _fameWallet[_msgSender()]--;
         _voteWallet[messageTokenId]++;
 
-        _addFameCoin(_messageCreators[messageTokenId],((uint16)(_voteWallet[messageTokenId] / 10)) + 1); // an upvote earns you 1 famecoins and the amount of upvotes divided by ten
-        _addFameCoin(_owners[_claimedSpots[spotId]],1); // an upvote earns the spot owner 1 famecoin
+        _addFameCoin(
+            _messageCreators[messageTokenId],
+            ((uint16)(_voteWallet[messageTokenId] / 10)) + 1
+        ); // an upvote earns you 1 famecoins and the amount of upvotes divided by ten
+        _addFameCoin(_owners[_claimedSpots[spotId]], 1); // an upvote earns the spot owner 1 famecoin
     }
 
-    function convertFameToMessageCoin(uint32 longitude, uint32 latitude) public
+    function convertFameToMessageCoin(uint32 longitude, uint32 latitude)
+        public
     {
         //for now, non-claimed spots can have messagecoins, that means you would be able to create messages for it whenever it exists
         uint64 spotId = _getSpotIdForCoordinates(longitude, latitude);
         _convertFameToMessageCoin(spotId);
     }
-    
-    function _convertFameToMessageCoin(uint64 spotId) internal
-    {
-        uint16 cost = 20 + (uint16)(_spotMessages[spotId].length / 10);
-        require(_fameWallet[_msgSender()] >= cost);
 
-        _fameWallet[_msgSender()]-= cost;  // means, 2 messages in this spot cost nothing extra, 20 will cost 2 extra, 100 will cost 10 extra
-        _spotWallet[spotId][_msgSender()]++;
+    function getMessageCoinBalanceForSpot(uint32 longitude, uint32 latitude)
+        public
+        view
+        returns (uint16)
+    {
+        uint64 spotId = _getSpotIdForCoordinates(longitude, latitude);
+        return _getMessageCoinBalanceForSpot(spotId);
     }
 
-    function _getSpotIdFromMessageTokenId(uint128 messageTokenId) internal view returns(uint64)
-    {
-        return (uint64)(messageTokenId / _maxMessageTokenPerSpot);
-    }
-
-     function _addFameCoin(address receiver,uint16 amt) internal
-     {
-        _fameWallet[receiver]+=amt;
-     }
-
-
-    function getMessageCoinBalanceForSpot(uint64 spotId) public view returns (uint16)
-    {
-    return _getMessageCoinBalanceForSpot(spotId);
-    }
-
-    function getFameCoinBalance() public view returns (uint16)
-    {
+    function getFameCoinBalance() public view returns (uint16) {
         return _fameWallet[_msgSender()];
     }
 
 
-    function _mintMessageOnSpot(uint64 spotId, string memory message, bool autoConvertFame) internal
+    function _getSpotIdForCoordinates(uint32 longitude, uint32 latitude)
+        internal
+        pure
+        returns (uint64)
     {
-        if(autoConvertFame == true && _getMessageCoinBalanceForSpot(spotId) == 0)
-        {
-            _convertFameToMessageCoin(spotId);
-        }
+        //app has to transmit the last 6 characters after decimal point of coordinate
+        uint8 longAngle = (uint8)(longitude / 1000000); //starting from a point on the poles, draw lines in this angle along the longitude of earth
+        uint32 longDecimal100sqm = (longitude - longAngle * 1000000) / 100;
+        //longDecimal100sqm needs a transformation --> 10/90 * angel * 100 === 100m for a millionth decimal digit //adapt to changing spot sizes when nearing the poles (imagine a grid on the planet)
 
-        require(_getMessageCoinBalanceForSpot(spotId)>0);
-        
-        uint128 messageTokenId = uint128((_spotMessages[spotId].length) + spotId * _maxMessageTokenPerSpot); 
-        _spotMessages[spotId].push(message);
-        _voteWallet[messageTokenId]=0;
-        _spotWallet[spotId][_msgSender()]--;
-        _messageCreators[messageTokenId] = _msgSender();
-        emit MintedMessage(_msgSender(),spotId, messageTokenId);
+        uint32 longSpot = longAngle * 1000000 + longDecimal100sqm * 100;
+        uint8 latAngle = (uint8)(latitude / 1000000);
+        uint32 latDecimal100sqm = (latitude - latAngle * 1000000) / 100; //size of a grid element
+        uint32 latSpot = latAngle * 1000000 + latDecimal100sqm * 100;
+        uint64 spotId = longSpot * 1000000000 + latSpot; //longSpot is shifted left and latSpot is added
+        return spotId;
+    }
+
+    function _existsSpot(uint64 spotId) internal view returns (bool) {
+        return _claimedSpots[spotId] != 0;
+    }
+
+    function _addMessageCoin(uint64 spotId) internal {
+        _spotWallet[spotId][_msgSender()]++;
+    }
+
+    function _substring(
+        string memory str,
+        uint256 startIndex,
+        uint256 endIndex
+    ) public pure returns (string memory) {
+        bytes memory strBytes = bytes(str);
+        bytes memory result = new bytes(endIndex - startIndex);
+        for (uint256 i = startIndex; i < endIndex; i++) {
+            result[i - startIndex] = strBytes[i];
+        }
+        return string(result);
     }
 
 
+    function _getMessageIndexFromMessageTokenId(uint128 messageTokenId)
+        internal
+        view
+        returns (uint32)
+    {
+        return
+            (uint32)(
+                (messageTokenId) -
+                    uint64(messageTokenId / _maxMessageTokenPerSpot) *
+                    _maxMessageTokenPerSpot
+            );
+    }
 
-    function _getMessageCoinBalanceForSpot(uint64 spotId) internal view returns (uint16)
+    function _convertFameToMessageCoin(uint64 spotId) internal {
+        uint16 cost = 20 + (uint16)(_spotMessages[spotId].length / 10);
+        require(_fameWallet[_msgSender()] >= cost);
+
+        _fameWallet[_msgSender()] -= cost; // means, 2 messages in this spot cost nothing extra, 20 will cost 2 extra, 100 will cost 10 extra
+        _spotWallet[spotId][_msgSender()]++;
+    }
+
+    function _getSpotIdFromMessageTokenId(uint128 messageTokenId)
+        internal
+        view
+        returns (uint64)
+    {
+        return (uint64)(messageTokenId / _maxMessageTokenPerSpot);
+    }
+
+    function _addFameCoin(address receiver, uint16 amt) internal {
+        _fameWallet[receiver] += amt;
+    }
+
+    function _mintMessageOnSpot(
+        uint64 spotId,
+        string memory message,
+        bool autoConvertFame
+    ) internal {
+        if (
+            autoConvertFame == true &&
+            _getMessageCoinBalanceForSpot(spotId) == 0
+        ) {
+            _convertFameToMessageCoin(spotId);
+        }
+
+        require(_getMessageCoinBalanceForSpot(spotId) > 0);
+
+        uint128 messageTokenId = uint128(
+            (_spotMessages[spotId].length) + spotId * _maxMessageTokenPerSpot
+        );
+        _spotMessages[spotId].push(message);
+        _voteWallet[messageTokenId] = 0;
+        _spotWallet[spotId][_msgSender()]--;
+        _messageCreators[messageTokenId] = _msgSender();
+        emit MintedMessage(_msgSender(), spotId, messageTokenId);
+    }
+
+    function _getMessageCoinBalanceForSpot(uint64 spotId)
+        internal
+        view
+        returns (uint16)
     {
         return _spotWallet[spotId][_msgSender()];
     }
 
-    
-
-    modifier onlyTokenHolder(uint256 tokenId)
-    {
-        require(_exists(tokenId),'The provided token does not exist');
-
-        require(_owners[getTokenIdIndex(tokenId)] == _msgSender(),"Caller is not owner of the token.");
-        _;
-    }
-    
-    
-    
-    function getTokenIdIndex(uint tokenId) internal view returns (uint256){
-        return tokenId - getTypeIdFromTokenId(tokenId) * _maxMessageTokenPerSpot;
-    }
-
-    
-    function getTypeIdFromTokenId(uint tokenId) internal view returns (uint32){
-        return  uint32(tokenId /_maxMessageTokenPerSpot);
-    }
-
 
     //ERC721 #################################
-    
 
     function totalSupply() public view returns (uint256) {
         return _owners.length;
     }
 
-    
     /**
      * @dev See {IERC165-supportsInterface}.
      */
@@ -326,7 +340,7 @@ contract GeoFingerToken is
     /**
      * @dev See {IERC721-balanceOf}.
      */
-    function balanceOf( address owner)
+    function balanceOf(address owner)
         public
         view
         virtual
@@ -357,7 +371,7 @@ contract GeoFingerToken is
         override
         returns (address)
     {
-        address owner = _owners[getTokenIdIndex(tokenId)];
+        address owner = _owners[tokenId];
         require(
             owner != address(0),
             "ERC721: owner query for nonexistent token"
@@ -397,7 +411,7 @@ contract GeoFingerToken is
         string memory baseURI = _baseURI();
         return
             bytes(baseURI).length > 0
-                ? string(abi.encodePacked(baseURI, tokenId.toString(),".json"))
+                ? string(abi.encodePacked(baseURI, tokenId.toString(), ".json"))
                 : "";
     }
 
@@ -409,8 +423,6 @@ contract GeoFingerToken is
     function _baseURI() internal view virtual returns (string memory) {
         return _baseURL;
     }
-
-    
 
     /**
      * @dev See {IERC721-approve}.
@@ -442,7 +454,7 @@ contract GeoFingerToken is
             "ERC721: approved query for nonexistent token"
         );
 
-        return _tokenApprovals[getTokenIdIndex(tokenId)];
+        return _tokenApprovals[tokenId];
     }
 
     /**
@@ -467,7 +479,7 @@ contract GeoFingerToken is
         returns (bool)
     {
         return _operatorApprovals[owner][operator];
-    } 
+    }
 
     /**
      * @dev See {IERC721-transferFrom}.
@@ -553,7 +565,7 @@ contract GeoFingerToken is
      * and stop existing when they are burned (`_burn`).
      */
     function _exists(uint256 tokenId) internal view virtual returns (bool) {
-        return _owners.length < getTokenIdIndex( tokenId); //owner length is the amt of existing tokens, including burned tokens
+        return _owners.length < tokenId; //owner length is the amt of existing tokens, including burned tokens
     }
 
     /**
@@ -609,8 +621,6 @@ contract GeoFingerToken is
         );
     }
 
-    
-
     /**
      * @dev Mints `tokenId` and transfers it to `to`.
      *
@@ -632,7 +642,6 @@ contract GeoFingerToken is
 
         emit Transfer(address(0), to, tokenId);
     }
-
 
     /**
      * @dev Destroys `tokenId`.
@@ -775,5 +784,4 @@ contract GeoFingerToken is
         address to,
         uint256 tokenId
     ) internal virtual {}
-
 }
