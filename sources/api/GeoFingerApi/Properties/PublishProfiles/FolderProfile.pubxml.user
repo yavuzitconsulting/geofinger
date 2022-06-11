@@ -5,6 +5,6 @@ https://go.microsoft.com/fwlink/?LinkID=208121.
 <Project>
   <PropertyGroup>
     <_PublishTargetUrl>C:\Users\yavuz\source\repos\GeoFingerApi\GeoFingerApi\bin\Release\net6.0\publish\</_PublishTargetUrl>
-    <History>True|2022-06-07T15:37:05.9498598Z;True|2022-06-07T17:36:26.7107453+02:00;True|2022-06-07T16:58:09.1570712+02:00;</History>
+    <History>True|2022-06-11T08:50:34.6068110Z;True|2022-06-11T10:49:55.2679140+02:00;True|2022-06-07T17:37:05.9498598+02:00;True|2022-06-07T17:36:26.7107453+02:00;True|2022-06-07T16:58:09.1570712+02:00;</History>
   </PropertyGroup>
 </Project>
