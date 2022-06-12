@@ -104,11 +104,52 @@ export default class MainComponent extends Component {
 
   }
 
-  @action async retrieveMessages() {
+  @action async retrieveMessage() {
+    try {
+      
+      this.setStatusMessage('asking server for messages');
+      let data = { lat: this.lat, lon: this.lon };
+      // await fetch(
+      //   '/geofinger/api/messages?lat=' + this.lat + '&lon=' + this.lon,
+      //   {
+      //     method: 'GET',
+      //     headers: { 'Content-Type': 'application/json' },
+      //   }
+      // )
 
-
-    this.setStatusMessage('asking blockchain for messages');
-
+      await this.fetchWithTimeout(
+        '/geofinger/api/messages?lat=' + this.lat + '&lon=' + this.lon,
+        {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
+          timeout: 8000 ,
+        }
+      )
+        .then((res) => res.json())
+        .then((data) => {
+          this.setStatusMessage(data);
+          this.lastMessages = [];
+          for (let i = 0; i < data.length; i++) {
+            this.setStatusMessage('msg: ' + data[i]);
+            this.setStatusMessage(this.lastMessages);
+            this.lastMessages.push(data[i]);
+            this.lastMessages = this.lastMessages;
+          }
+          this.canConnectToApi = true;
+        });
+    } catch (reason) {
+      this.setStatusMessage('server was not available or could not be reached: ' + reason);
+      this.bigStatus = 'server connection failed, retrying (' + this.serverRetries + '/4)';
+      this.serverRetries++;
+      if(this.serverRetries >= 6)
+      {
+        this.bigStatus = 'server connection cannot be established, please come back later';
+        this.serverRetries = 1;
+        this.setStatusMessage('maybe try refreshing this window?');
+        return;
+      }
+      this.retrieveMessage();
+    }
     this.isRequestPending = false;
   }
 
