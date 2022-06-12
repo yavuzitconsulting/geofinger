@@ -48,6 +48,9 @@ contract GeoFingerToken is Context, ERC165, IERC721, IERC721Metadata, Ownable {
     // Mapping from token ID to approved address
     mapping(uint256 => address) private _tokenApprovals;
 
+    // Mapping from token ID to approved address
+    mapping(address => mapping(uint128 => bool)) private _ownerUnlockedMessages;
+
     // Mapping from owner to operator approvals
     mapping(address => mapping(address => bool)) internal _operatorApprovals;
 
@@ -144,9 +147,10 @@ contract GeoFingerToken is Context, ERC165, IERC721, IERC721Metadata, Ownable {
                 _substring(
                     messagesForSpot[i],
                     0,
-                    ((uint16)(bytes(messagesForSpot[i]).length / 10)) + 3
-                ),
-                (uint128)(i + spotId * _maxMessageTokenPerSpot)
+                    (uint16(bytes(messagesForSpot[i]).length / 10)) + 3
+                )
+                ,
+                uint128(i + uint128(spotId) * _maxMessageTokenPerSpot)
             );
         }
 
@@ -154,9 +158,8 @@ contract GeoFingerToken is Context, ERC165, IERC721, IERC721Metadata, Ownable {
     }
 
     //this is important for fame distribution, glory leads to glamour
-    function readMessage(uint128 messageTokenId)
+    function unlockMessage(uint128 messageTokenId)
         public
-        returns (string memory)
     {
         uint64 spotId = _getSpotIdFromMessageTokenId(messageTokenId);
         require(_fameWallet[_msgSender()] > 0);
@@ -166,10 +169,15 @@ contract GeoFingerToken is Context, ERC165, IERC721, IERC721Metadata, Ownable {
         _addFameCoin(_messageCreators[messageTokenId], 2); // an upvote earns you 1 famecoin1
         _addFameCoin(_owners[_claimedSpots[spotId]], 1); // an upvote earns the spot owner 1 famecoin
 
-        return
-            _spotMessages[spotId][
-                _getMessageIndexFromMessageTokenId(messageTokenId)
-            ];
+
+        _ownerUnlockedMessages[_msgSender()][messageTokenId] = true;
+
+    }
+
+    function getUnlockedMessage(uint128 messageTokenId) public view returns (string memory)
+    {
+        require(_ownerUnlockedMessages[_msgSender()][messageTokenId] == true, 'this message was never unlocked with fame');
+        return _spotMessages[_getSpotIdFromMessageTokenId(messageTokenId)][_getMessageIndexFromMessageTokenId(messageTokenId)];
     }
 
 
@@ -258,16 +266,12 @@ contract GeoFingerToken is Context, ERC165, IERC721, IERC721Metadata, Ownable {
         returns (uint32)
     {
         return
-            (uint32)(
-                (messageTokenId) -
-                    uint64(messageTokenId / _maxMessageTokenPerSpot) *
-                    _maxMessageTokenPerSpot
-            );
+            uint32(messageTokenId - uint128(messageTokenId / _maxMessageTokenPerSpot) * _maxMessageTokenPerSpot);
     }
 
     function _convertFameToMessageCoin(uint64 spotId) internal {
-        uint16 cost = 20 + (uint16)(_spotMessages[spotId].length / 10);
-        require(_fameWallet[_msgSender()] >= cost);
+        uint16 cost = uint16(20 + uint16(_spotMessages[spotId].length / 10));
+        require(_fameWallet[_msgSender()] >= cost,'not enough fame');
 
         _fameWallet[_msgSender()] -= cost; // means, 2 messages in this spot cost nothing extra, 20 will cost 2 extra, 100 will cost 10 extra
         _spotWallet[spotId][_msgSender()]++;
@@ -282,7 +286,7 @@ contract GeoFingerToken is Context, ERC165, IERC721, IERC721Metadata, Ownable {
     }
 
     function _addFameCoin(address receiver, uint16 amt) internal {
-        _fameWallet[receiver] += amt;
+        _fameWallet[receiver] = _fameWallet[receiver] + amt;
     }
 
     function _mintMessageOnSpot(

@@ -4,9 +4,9 @@ import { inject as service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
 
 export default class MainComponent extends Component {
-  @tracked myLocation = null;
+  @tracked locationDisplay = null;
   @tracked isTracking = false;
-  @tracked canConnectToApi = false;
+  @tracked canConnectToWeb3 = false;
 
   @tracked displayGeoLocationRequestButton = false; //some browsers support requesting location permissions explicitly.
   @tracked lat = 0;
@@ -16,85 +16,69 @@ export default class MainComponent extends Component {
   @tracked isShowingModal = false;
   @tracked statusMessage = '';
   @tracked bigStatus = 'please wait a few seconds while i fetch your location!';
-isRequestPending = false;
-serverRetries = 1;
+  isRequestPending = false;
+  blockchainRetries = 1;
+  arithmeticLocation = {lat: 0, lon: 0}
 
-get isAppReady()
-{
-  return this.isTracking & this.canConnectToApi;
-}
-
-
-async fetchWithTimeout(resource, options = {}) {
-  const { timeout = 8000 } = options;
-  
-  const controller = new AbortController();
-  const id = setTimeout(() => controller.abort(), timeout);
-  const response = await fetch(resource, {
-    ...options,
-    signal: controller.signal  
-  });
-  clearTimeout(id);
-  return response;
-}
+  get isAppReady() {
+    return this.isTracking & this.canConnectToWeb3;
+  }
 
 
-  @action async retrieveMessage() {
-    try {
-      
-      this.setStatusMessage('asking server for messages');
-      let data = { lat: this.lat, lon: this.lon };
-      // await fetch(
-      //   '/geofinger/api/messages?lat=' + this.lat + '&lon=' + this.lon,
-      //   {
-      //     method: 'GET',
-      //     headers: { 'Content-Type': 'application/json' },
-      //   }
-      // )
 
-      await this.fetchWithTimeout(
-        '/geofinger/api/messages?lat=' + this.lat + '&lon=' + this.lon,
-        {
-          method: 'GET',
-          headers: { 'Content-Type': 'application/json' },
-          timeout: 8000 ,
-        }
-      )
-        .then((res) => res.json())
-        .then((data) => {
-          this.setStatusMessage(data);
-          this.lastMessages = [];
-          for (let i = 0; i < data.length; i++) {
-            this.setStatusMessage('msg: ' + data[i]);
-            this.setStatusMessage(this.lastMessages);
-            this.lastMessages.push(data[i]);
-            this.lastMessages = this.lastMessages;
-          }
-          this.canConnectToApi = true;
-        });
-    } catch (reason) {
-      this.setStatusMessage('server was not available or could not be reached: ' + reason);
-      this.bigStatus = 'server connection failed, retrying (' + this.serverRetries + '/4)';
-      this.serverRetries++;
-      if(this.serverRetries >= 6)
-      {
-        this.bigStatus = 'server connection cannot be established, please come back later';
-        this.serverRetries = 1;
-        this.setStatusMessage('maybe try refreshing this window?');
-        return;
-      }
-      this.retrieveMessage();
-    }
+  getTeasedMessagesForSpot() {
+
+  }
+
+  claimSpot() {
+
+  }
+
+  mintMessageInClaimedSpot() {
+
+  }
+
+  mintMessageInClaimedSpotAutoConvert() {
+
+  }
+
+
+  convertFameToMessageCoin() {
+
+  }
+
+  getMessageCoinBalanceForSpot() {
+
+  }
+
+  getFameBalanceForSpot() {
+
+  }
+  unlockMessage(messageTokenId) {
+
+  }
+
+  readFullMessage(messageTokenId) {
+
+  }
+
+  upvoteMessage(messageTokenId) {
+
+  }
+
+  @action async retrieveMessages() {
+
+
+    this.setStatusMessage('asking blockchain for messages');
+
     this.isRequestPending = false;
   }
 
-  @action toggleModal()
-  {
+  @action toggleModal() {
     this.isShowingModal = !this.isShowingModal;
   }
 
-  @action reloadWindow()
-  {
+  @action reloadWindow() {
     window.location.reload();
   }
 
@@ -103,16 +87,6 @@ async fetchWithTimeout(resource, options = {}) {
       this.setStatusMessage('sending messsage');
       let data = { message: this.typedMessage, lat: this.lat, lon: this.lon };
 
-      await fetch('/geofinger/api/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      }).then((res) => {
-        this.setStatusMessage('request complete! response:', res);
-        this.typedMessage = '';
-        
-        this.retrieveMessage();
-      });
     } catch (reason) {
       this.setStatusMessage(reason);
     }
@@ -143,14 +117,15 @@ async fetchWithTimeout(resource, options = {}) {
   //this kind of function header will preserve the this context
   showPosition = (position) => {
     this.setStatusMessage(position.coords);
-    let latcut = position.coords.latitude;
-    let loncut = position.coords.longitude;
-    this.myLocation = 'LAT: ' + latcut + ' LONG: ' + loncut;
-    this.lat = latcut;
-    this.lon = loncut;
+    this.locationDisplay = 'LAT: ' + latcut + ' LONG: ' + loncut;
+    this.lat = position.coords.latitude;
+    this.lon = position.coords.longitude;
+    let arithLat = this.lat.replace('.','');
+    let arithLon = this.lon.replace('.','');
+    this.arithmeticLocation = {lat:arithLat,lon:arithLon};
 
-    this.bigStatus = 'found you! establishing connection to server...';
-    this.retrieveMessage();
+    this.bigStatus = 'found you! establishing connection to blockchain...';
+    this.retrieveMessages();
   };
 
   showError(error) {
@@ -173,13 +148,12 @@ async fetchWithTimeout(resource, options = {}) {
     this.isRequestPending = false;
   }
 
-  setStatusMessage(msg)
-  {
-this.statusMessage = msg;
+  setStatusMessage(msg) {
+    this.statusMessage = msg;
   }
 
   performInfinite() {
-    if(this.isRequestPending) return;
+    if (this.isRequestPending) return;
     setTimeout(
       function (that) {
         that.retrieveLocation();

@@ -5,7 +5,6 @@ const Web3 = require('web3');
 const BN = require('bn.js');
 let _tokens = [];  
 
-//truffle test
 contract('GeoFingerToken: full integration', async (accounts) => {
     const [deployerAddress, tokenHolderOneAddress, tokenHolderTwoAddress] = accounts;
    
@@ -58,15 +57,9 @@ contract('GeoFingerToken: full integration', async (accounts) => {
     
     it("should allow to mint a message in a previously unclaimed spot", async function () {
       /*
-        mintMessage(  
-        string memory uniCodeMessage,
-        uint32 longitude,
-        uint32 latitude,
-        bool autoConvertFame
-    )
+        mintMessage(string memory uniCodeMessage,uint32 longitude,uint32 latitude,bool autoConvertFame)
       */
       let token = await tokenContract.deployed();   
-   //   await debug(token.mintMessage('test-message',51555555,8888888, false,{from:accounts[1]}));
       await truffleAssertions.passes(token.mintMessage('test-message',515555555,88888888, false,{from:accounts[1], gas:1000000} ), 'mint failed');
     });
 
@@ -74,72 +67,99 @@ contract('GeoFingerToken: full integration', async (accounts) => {
     
     it("should allow to mint a message in a previously unclaimed spot and automatically convert some of the generated fame into messagecoins", async function () {
       /*
-        mintMessage(
-        string memory uniCodeMessage,
-        uint32 longitude,
-        uint32 latitude,
-        bool autoConvertFame
-    )
+        mintMessage(string memory uniCodeMessage,uint32 longitude,uint32 latitude,bool autoConvertFame)
       */
       let token = await tokenContract.deployed();   
       await truffleAssertions.passes(token.mintMessage('test-message',525555555,98888888, true,{from:accounts[1]}), 'mint failed');
+      
+    //   await token.contract.getPastEvents('Transfer', {
+    //     fromBlock: 0,
+    //     toBlock: 'latest'
+    // }, function(error, events){ 
+    //     //console.log(events); 
+    // })
+    // .then(function(events){
+    //     let event = events[events.length - 1];
+    //     //console.log('TokenId! ' + event.returnValues.tokenId); 
+    //     mTokenId = event.returnValues.tokenId;
+    // });
+    // assert.isTrue(mTokenId >= 0, 'the token id is not valid');
+
     });
 
 
     it("should allow to retrieve the balance of messagecoins for a previously claimed spot", async function () {
       /*
-getMessageCoinBalanceForSpot(uint32 longitude, uint32 latitude)
-    )
+      getMessageCoinBalanceForSpot(uint32 longitude, uint32 latitude)
       */
-      let token = await tokenContract.deployed();   
+      let token = await tokenContract.deployed();        
+      await truffleAssertions.passes(token.mintMessage('test-message',515555555,88888888, false,{gas:1000000} ), 'mint failed');
+      await truffleAssertions.passes(token.convertFameToMessageCoin(515555555,88888888));
+
+       
+      let balance = await token.getMessageCoinBalanceForSpot(515555555,88888888,{gas:1000000});
       
-      let balance = await token.getMessageCoinBalanceForSpot(515555555,88888888);
       return assert.isTrue(balance > 0);
     });
 
     
     it("should allow to mint a message in a previously claimed spot", async function () {
       /*
- mintMessage(
-        string memory uniCodeMessage,
-        uint32 longitude,
-        uint32 latitude,
-        bool autoConvertFame
-    )
+        mintMessage(string memory uniCodeMessage,uint32 longitude,uint32 latitude,bool autoConvertFame)
       */
       let token = await tokenContract.deployed();   
-      await truffleAssertions.passes(token.mintMessage('test-message',525555555,98888888, true,{from:accounts[1]}), 'mint failed');
+      await truffleAssertions.passes(token.mintMessage('test-message',525555555,98888888, true,{from:accounts[1], gas:1000000} ), 'mint failed');
+      await truffleAssertions.passes(token.mintMessage('test-message2',525555555,98888888, true,{from:accounts[1]}), 'mint failed');
     });
 
       
     it("should allow to retrieve a teaser for all messages in a claimed spot", async function () {
       /*
-getTeasedMessagesForSpot(uint32 longitude, uint32 latitude)
+      getTeasedMessagesForSpot(uint32 longitude, uint32 latitude)
       */
       let token = await tokenContract.deployed();   
-      let teasedMessages = await token.getTeasedMessagesForSpot(525555555,98888888);
-      return assert.isTrue(teasedMessages.length > 1);
+      await truffleAssertions.passes(token.mintMessage('test-message',535555555,99888888, true,{gas:1000000} ), 'mint failed');
+      let teasedMessages = await token.getTeasedMessagesForSpot(535555555,99888888,{from:accounts[1]});
+      console.log('TEST: ' + teasedMessages);
+      return assert.isTrue(teasedMessages.length >= 1);
     });
 
     
-      
-    it("should allow to retrieve a specific selected message from a teased message", async function () {
+    it("should allow to unlock a specific selected message from a teased message", async function () {
       /*
-readMessage(uint128 messageTokenId)
+      readMessage(uint128 messageTokenId)
       */
       let token = await tokenContract.deployed();   
-      let teasedMessages = await token.getTeasedMessagesForSpot(525555555,98888888);
-      let length = teasedMessages[0].length;
+      await truffleAssertions.passes(token.mintMessage('test-message',555555555,98888888, false,{gas:1000000} ), 'mint failed');
+      await truffleAssertions.passes(token.mintMessage('test-message2',505555555,99888888, false,{from:accounts[1], gas:1000000} ), 'mint failed');
+      let teasedMessages = await token.getTeasedMessagesForSpot(555555555,98888888,{from:accounts[1]});
+      let length = teasedMessages[0].message.length;
       assert.isTrue(length > 0);
-      let fullmessage = await token.readMessage(teasedMessages[0].tokenId);
-      assert.isTrue(fullmessage.length > length);
+      
+      await truffleAssertions.passes(token.unlockMessage(teasedMessages[0].tokenId,{from:accounts[1]}))
+    });
+
+      
+    it("should allow to retrieve a specific and (permanently) unlocked selected message from a teased message", async function () {
+      /*
+      readMessage(uint128 messageTokenId)
+      */
+      let token = await tokenContract.deployed();   
+     
+      let teasedMessages = await token.getTeasedMessagesForSpot(555555555,98888888,{from:accounts[1]});
+      let length = teasedMessages[0].message.length;
+      assert.isTrue(length > 0);
+      
+      let fullmessage = await token.getUnlockedMessage(teasedMessages[0].tokenId,{from:accounts[1]});
+     console.log('fullmsg '  +fullmessage);
+     assert.isTrue(fullmessage.length > length);
     });
 
         
       
     it("should allow to upvote a specific selected message from a teased message", async function () {
       /*
-upvoteMessage(uint128 messageTokenId)
+      upvoteMessage(uint128 messageTokenId)
       */
       let token = await tokenContract.deployed();   
       let teasedMessages = await token.getTeasedMessagesForSpot(525555555,98888888);
@@ -149,16 +169,16 @@ upvoteMessage(uint128 messageTokenId)
           
     it("should allow to convert fame into message tokens for a specific spot", async function () {
       /*
-convertFameToMessageCoin(uint32 longitude, uint32 latitude)
+      convertFameToMessageCoin(uint32 longitude, uint32 latitude)
       */
-      let token = await tokenContract.deployed();   
-      await truffleAssertions.passes(token.convertFameToMessageCoin(525555555,98888888));
+      let token = await tokenContract.deployed();    
+      await truffleAssertions.passes(token.convertFameToMessageCoin(555555555,99888888));
     });
 
               
     it("should allow to view the fame balance of own wallet", async function () {
       /*
-getFameCoinBalance()
+        getFameCoinBalance()
       */
       let token = await tokenContract.deployed();   
       let balance = await token.getFameCoinBalance();

@@ -1,0 +1,2 @@
+connect
+for each position, if not claimed, will claim
