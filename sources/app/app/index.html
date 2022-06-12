@@ -14,10 +14,25 @@
 
     {{content-for "head-footer"}}
   </head>
+  <style>
+    body{
+        
+      background: linear-gradient(#6ca044, #6ca044);
+      margin:0;
+      height: 100vh;
+      width: 100vw;
+      color: white;
+      
+        
+    }
+  
+    
+  </style>
   <body>
     {{content-for "body"}}
 
     <script src="{{rootURL}}assets/vendor.js"></script>
+    <script src="{{rootURL}}particles.min.js"></script>
     <script src="{{rootURL}}assets/geofinger.js"></script>
     <script src="{{rootURL}}web3.min.js"></script>
 
