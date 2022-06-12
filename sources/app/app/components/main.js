@@ -125,7 +125,6 @@ export default class MainComponent extends Component {
       this.setStatusMessage('sending messsage');
       let data = { message: this.enteredMessage, lat: this.lat, lon: this.lon };
 
-<<<<<<< HEAD
       await fetch('/geofinger/api/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -136,8 +135,6 @@ export default class MainComponent extends Component {
         
         this.retrieveMessage();
       });
-=======
->>>>>>> 28255a8c1348b5905f534531a19674abc5159f3d
     } catch (reason) {
       this.setStatusMessage(reason);
     }
@@ -204,11 +201,7 @@ export default class MainComponent extends Component {
   }
 
   performInfinite() {
-<<<<<<< HEAD
-  
-=======
-    if (this.isRequestPending) return;
->>>>>>> 28255a8c1348b5905f534531a19674abc5159f3d
+
     setTimeout(
       function (that) {
         if(!this.isRequestPending) that.retrieveLocation();
