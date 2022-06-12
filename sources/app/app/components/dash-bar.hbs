@@ -4,7 +4,7 @@
   <div class="connectinfo">
     {{#if this.web3service.isConnected}}
     
-    <div class="account" id="glow-red"><b>&lt;</b> {{nicer-hash this.web3service.selectedAddress}}<b>&gt;</b></div>
+    <div class="account" id="glow-red"><b>&lt;</b> {{nicer-hash this.web3service.connectedAccount}}<b>&gt;</b></div>
     {{else}}
     <div class="account" id="glow-red"><b>&lt;</b> not connected <b>&gt;</b></div>
     {{/if}}

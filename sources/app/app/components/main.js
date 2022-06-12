@@ -132,6 +132,7 @@ export default class MainComponent extends Component {
 
   @action async setUserLocation() {
     let ready = await this.handlePermission();
+    console.debug('appstate: ' + ready);
     if (ready == true) {
       //handle requesting permissions
       this.isTracking = true;
@@ -154,12 +155,12 @@ export default class MainComponent extends Component {
 
   //this kind of function header will preserve the this context
   showPosition = (position) => {
-    this.setStatusMessage(position.coords);
-    this.locationDisplay = 'LAT: ' + latcut + ' LONG: ' + loncut;
     this.lat = position.coords.latitude;
     this.lon = position.coords.longitude;
-    let arithLat = this.lat.replace('.','');
-    let arithLon = this.lon.replace('.','');
+    this.locationDisplay = 'LAT: ' + this.lat + ' LONG: ' + this.lon;
+    this.setStatusMessage(this.locationDisplay);
+    let arithLat = Math.trunc(this.lat * 1000000);
+    let arithLon = Math.trunc(this.lon * 1000000);
     this.arithmeticLocation = {lat:arithLat,lon:arithLon};
 
     this.bigStatus = 'found you! establishing connection to blockchain...';

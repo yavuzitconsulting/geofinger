@@ -759,20 +759,20 @@ export default class Web3service extends Service.extend({}) {
         }
       ] //abi goes here
     _web3addr = 'https://yitc.ddns.net:8545';
-    _geofinger_contract_address = '0x0000000000000000000000000000000000000000';
+    _geofinger_contract_address = '0x2d697F6fB489326eCaaBce7fC67678D3E8B838B1';
     _lweb3 = new Web3(this._web3addr);
     _contract = new this._lweb3.eth.Contract(this._abi, this._geofinger_contract_address);
     _metamask = null;
     @tracked _isMintingActive = false;
 
 
-    @tracked _connectedAccount = null;
+    @tracked connectedAccount = null;
 
 
     get isConnected() {
         if (window.ethereum == null) return false;
 
-        return (this._connectedAccount || null) != null
+        return (this.connectedAccount || null) != null
     }
 
     registerHandlers(router) {
@@ -804,6 +804,8 @@ export default class Web3service extends Service.extend({}) {
             {
              router.transitionTo('/');
             }
+
+
     }
 
     async connect() {
@@ -812,23 +814,25 @@ export default class Web3service extends Service.extend({}) {
             window.ethereum.on("chainChanged", () => window.location.reload());
 
 
-            await window.ethereum.request({ method: 'eth_requestAccounts' })[0];
 
 
 
-            window.ethereum.on("message", (message) => console.debug(message));
+            window.ethereum.on("message", (message) => console.log(message));
 
-            window.ethereum.on("connect", (info) => {
-                console.debug(`Connected to network ${info}`);
-                this._connectedAccount = window.ethereum.selectedAddress;
-            });
+          
 
             window.ethereum.on("disconnect", (error) => {
-                console.debug(`Disconnected from network ${error}`);
-                this._connectedAccount = null;
+                console.log(`Disconnected from network ${error}`);
+                this.connectedAccount = null;
             });
+            let accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
 
-            console.debug('connected');
+            if(accounts.length > 0)
+            {
+                this.connectedAccount = accounts[0];
+                console.log('connected with ' + this.connectedAccount);
+            }
+
 
         } else {
             console.error("Install MetaMask.");
@@ -837,8 +841,8 @@ export default class Web3service extends Service.extend({}) {
     }
 
     async getContractBalance() {
-        let res = await this._contract.methods.balanceOf(this._connectedAccount).call({ from: this._connectedAccount });
-        console.debug('The Balance of ' + this._connectedAccount + 'is ' + res);
+        let res = await this._contract.methods.balanceOf(this.connectedAccount).call({ from: this.connectedAccount });
+        console.debug('The Balance of ' + this.connectedAccount + 'is ' + res);
         return res;
     }
 
@@ -849,12 +853,12 @@ export default class Web3service extends Service.extend({}) {
 
             let currentGasPrice = this._lweb3.utils.numberToHex(await this._lweb3.eth.getGasPrice());
             console.debug('currentGasPrice: ' + currentGasPrice);
-            let estimatedGasSpending = this._lweb3.utils.numberToHex(await this._contract.methods.mint(1, this._connectedAccount).estimateGas({ from: window.ethereum.selectedAddress }));
+            let estimatedGasSpending = this._lweb3.utils.numberToHex(await this._contract.methods.mint(1, this.connectedAccount).estimateGas({ from: window.ethereum.selectedAddress }));
             console.debug('estimatedGasSpending: ' + estimatedGasSpending);
-            console.debug('ETH-ADDRESS: ' + this._connectedAccount);
+            console.debug('ETH-ADDRESS: ' + this.connectedAccount);
 
 
-            await this._metamask.methods.mint(1, this._connectedAccount).send({ from: this._connectedAccount })
+            await this._metamask.methods.mint(1, this.connectedAccount).send({ from: this.connectedAccount })
                 .on('transactionHash', function (hash) {
                     console.debug('transactionhash: ' + hash);
                 })

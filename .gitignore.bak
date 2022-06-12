@@ -6,4 +6,4 @@
 /sources/api/GeoFingerApi/obj
 /sources/api/GeoFingerApi/bin
 /sources/sc/node_modules
-/sources/sc/build/contracts
+/sources/sc/build
