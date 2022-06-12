@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "ProjectMap": {
+    "fd63f9f0-379b-4b54-b6b0-0d00e6ad4d91": {
+      "ProjectGuid": "fd63f9f0-379b-4b54-b6b0-0d00e6ad4d91",
+      "DisplayName": "GeoFingerApi",
+      "ColorIndex": 0
+    }
+  },
+  "NextColorIndex": 1
+}

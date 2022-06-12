@@ -1,7 +1,13 @@
 using GeoFingerApi.Model;
 using GeoFingerApi.Services;
 
-var builder = WebApplication.CreateBuilder(args);
+var webApplicationOptions = new WebApplicationOptions
+{
+    ContentRootPath = AppContext.BaseDirectory,
+    Args = args,
+};
+
+var builder = WebApplication.CreateBuilder(webApplicationOptions);
 
 // Add services to the container.
 

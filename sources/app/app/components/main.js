@@ -12,7 +12,9 @@ export default class MainComponent extends Component {
   @tracked lat = 0;
   @tracked lon = 0;
   @tracked lastMessages = [];
-  @tracked typedMessage = '';
+  @tracked enteredMessage =''
+  @tracked invalidMessage =""
+  @tracked isMinting=false;
   @tracked isShowingModal = false;
   @tracked statusMessage = '';
   @tracked bigStatus = 'please wait a few seconds while i fetch your location!';
@@ -37,6 +39,42 @@ async fetchWithTimeout(resource, options = {}) {
   clearTimeout(id);
   return response;
 }
+
+  @action updateEnteredMessage(e)
+  {
+    const re = /[^0-9\sa-zA-Z]+/g;
+    this.invalidMessage="";
+    if(re.test(e.target.value)) {
+      this.invalidMessage="The given input is not a valid ascii value";
+      return;
+    }
+    if(e.target.value.length>600) {
+      this.invalidMessage="The given input has too many characters. Only max 600 characters allowed.";
+      return;
+    }
+    this.invalidMessage="";
+    this.enteredMessage = e.target.value;
+  }
+
+  get hasValueInserted(){
+    return this.enteredMessage.length>0;
+  }
+
+  get hasValidMessage(){
+    return this.invalidMessage.length===0 && this.enteredMessage.length>0;
+  }
+
+  get hasMessages(){
+    return this.lastMessages.length>0;
+  }
+
+  @action clearMessages(){
+    this.lastMessages.clear();
+  }
+
+  @action clearMessage(){
+    this.enteredMessage = '';
+  }
 
 
   @action async retrieveMessage() {
@@ -98,10 +136,10 @@ async fetchWithTimeout(resource, options = {}) {
     window.location.reload();
   }
 
-  @action async leaveMessage() {
+  @action async mintMessage() {
     try {
       this.setStatusMessage('sending messsage');
-      let data = { message: this.typedMessage, lat: this.lat, lon: this.lon };
+      let data = { message: this.enteredMessage, lat: this.lat, lon: this.lon };
 
       await fetch('/geofinger/api/messages', {
         method: 'POST',
@@ -109,7 +147,7 @@ async fetchWithTimeout(resource, options = {}) {
         body: JSON.stringify(data),
       }).then((res) => {
         this.setStatusMessage('request complete! response:', res);
-        this.typedMessage = '';
+        this.enteredMessage = '';
         
         this.retrieveMessage();
       });
@@ -152,8 +190,8 @@ async fetchWithTimeout(resource, options = {}) {
     this.bigStatus = 'found you! establishing connection to server...';
     this.retrieveMessage();
   };
-
-  showError(error) {
+  
+  showError = (error) => {
 
     switch (error.code) {
       case error.PERMISSION_DENIED:
@@ -179,10 +217,10 @@ this.statusMessage = msg;
   }
 
   performInfinite() {
-    if(this.isRequestPending) return;
+  
     setTimeout(
       function (that) {
-        that.retrieveLocation();
+        if(!this.isRequestPending) that.retrieveLocation();
         that.performInfinite();
       },
       2000,
