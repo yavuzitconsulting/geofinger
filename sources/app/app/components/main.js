@@ -165,15 +165,14 @@ export default class MainComponent extends Component {
   //this kind of function header will preserve the this context
   showPosition = (position) => {
     this.setStatusMessage(position.coords);
-    this.locationDisplay = 'LAT: ' + latcut + ' LONG: ' + loncut;
-    this.lat = position.coords.latitude;
-    this.lon = position.coords.longitude;
-    let arithLat = this.lat.replace('.','');
-    let arithLon = this.lon.replace('.','');
-    this.arithmeticLocation = {lat:arithLat,lon:arithLon};
+    let latcut = position.coords.latitude;
+    let loncut = position.coords.longitude;
+    this.myLocation = 'LAT: ' + latcut + ' LONG: ' + loncut;
+    this.lat = latcut;
+    this.lon = loncut;
 
-    this.bigStatus = 'found you! establishing connection to blockchain...';
-    this.retrieveMessages();
+    this.bigStatus = 'found you! establishing connection to server...';
+    this.retrieveMessage();
   };
   
   showError = (error) => {
