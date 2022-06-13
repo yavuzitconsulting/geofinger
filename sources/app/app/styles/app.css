@@ -336,6 +336,7 @@ div.status
     position: fixed;
     bottom: 30px;
     background-color: bisque;
+    color: black;
     left: 0px;
     right: 0px;
     text-align: center;

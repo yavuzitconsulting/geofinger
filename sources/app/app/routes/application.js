@@ -11,7 +11,7 @@ export default class ApplicationRoute extends Route {
       {
         await this.web3service.getIsMintingActive();
         //instead, create and call web3service.configureweb3
-        this.web3service.registerHandlers(this.router);
+        this.web3service.registerHandlers();
       }
 
 

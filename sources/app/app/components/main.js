@@ -6,16 +6,16 @@ import { tracked } from '@glimmer/tracking';
 export default class MainComponent extends Component {
   @tracked locationDisplay = null;
   @tracked isTracking = false;
-  @tracked canConnectToWeb3 = false;
-
   @tracked displayGeoLocationRequestButton = false; //some browsers support requesting location permissions explicitly.
-  @tracked lat = 0;
-  @tracked lon = 0;
+  @tracked lat = -1;
+  @tracked lon = -1;
   @tracked lastMessages = [];
   @tracked enteredMessage =''
   @tracked invalidMessage =""
   @tracked isMinting=false;
   @tracked isShowingModal = false;
+  @service web3service;
+  
   @tracked statusMessage = '';
   @tracked bigStatus = 'please wait a few seconds while i fetch your location!';
   isRequestPending = false;
@@ -23,40 +23,13 @@ export default class MainComponent extends Component {
   arithmeticLocation = {lat: 0, lon: 0}
 
   get isAppReady() {
-    return this.isTracking & this.canConnectToWeb3;
+    return this.isTracking && this.web3service.isConnected && this.lat != -1 && this.lon != -1;
   }
 
 
-
-  getTeasedMessagesForSpot() {
-
-  }
-
-  claimSpot() {
-
-  }
-
-  mintMessageInClaimedSpot() {
-
-  }
-
-  mintMessageInClaimedSpotAutoConvert() {
-
-  }
 
   @action updateEnteredMessage(e)
   {
-    const re = /[^0-9\sa-zA-Z]+/g;
-    this.invalidMessage="";
-    if(re.test(e.target.value)) {
-      this.invalidMessage="The given input is not a valid ascii value";
-      return;
-    }
-    if(e.target.value.length>600) {
-      this.invalidMessage="The given input has too many characters. Only max 600 characters allowed.";
-      return;
-    }
-    this.invalidMessage="";
     this.enteredMessage = e.target.value;
   }
 
@@ -81,34 +54,27 @@ export default class MainComponent extends Component {
   }
 
 
-  convertFameToMessageCoin() {
-
-  }
-
-  getMessageCoinBalanceForSpot() {
-
-  }
-
-  getFameBalanceForSpot() {
-
-  }
-  unlockMessage(messageTokenId) {
-
-  }
-
-  readFullMessage(messageTokenId) {
-
-  }
-
-  upvoteMessage(messageTokenId) {
-
-  }
-
   @action async retrieveMessages() {
+    try {
+      
+      this.setStatusMessage('asking blockchain for messages');
+      const _tmessages = await this.web3service.getTeasedMessagForSpot(this.arithmeticLocation.lon,this.arithmeticLocation.lat);
+      this.lastMessages = _tmessages.map((tm)=>tm.message);
 
 
-    this.setStatusMessage('asking blockchain for messages');
-
+    } catch (reason) {
+      this.setStatusMessage('server was not available or could not be reached: ' + reason);
+      this.bigStatus = 'server connection failed, retrying (' + this.serverRetries + '/4)';
+      this.serverRetries++;
+      if(this.serverRetries >= 6)
+      {
+        this.bigStatus = 'blockchain connection cannot be established, please come back later';
+        this.serverRetries = 1;
+        this.setStatusMessage('maybe try refreshing this window?');
+        return;
+      }
+      this.retrieveMessages();
+    }
     this.isRequestPending = false;
   }
 
@@ -120,14 +86,17 @@ export default class MainComponent extends Component {
     window.location.reload();
   }
 
-  @action async leaveMessage() {
+  @action async mintMessage() {
     try {
+      this.isMinting = true;
       this.setStatusMessage('sending messsage');
-      let data = { message: this.enteredMessage, lat: this.lat, lon: this.lon };
+      await this.web3service.mintMessage(this.enteredMessage,this.arithmeticLocation.lon, this.arithmeticLocation.lat, true);
+     
 
     } catch (reason) {
       this.setStatusMessage(reason);
-    }
+    } 
+    this.isMinting = false;
   }
 
   @action async setUserLocation() {
@@ -141,6 +110,8 @@ export default class MainComponent extends Component {
   }
 
   retrieveLocation = () => {
+    
+console.log('retrievelocation, requestpending: ' + this.isRequestPending);
     this.isRequestPending = true;
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -192,7 +163,6 @@ export default class MainComponent extends Component {
   }
 
   performInfinite() {
-
     setTimeout(
       function (that) {
         if(!this.isRequestPending) that.retrieveLocation();
@@ -205,6 +175,7 @@ export default class MainComponent extends Component {
 
   async handlePermission() {
     //return true if permissions are in order
+    console.log('handlepermission');
     await navigator.permissions
       .query({ name: 'geolocation' })
       .then((result) => {

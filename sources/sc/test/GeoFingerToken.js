@@ -142,7 +142,7 @@ contract('GeoFingerToken: full integration', async (accounts) => {
       
     it("should allow to retrieve a specific and (permanently) unlocked selected message from a teased message", async function () {
       /*
-      readMessage(uint128 messageTokenId)
+      getUnlockedMessage(uint128 messageTokenId)
       */
       let token = await tokenContract.deployed();   
      

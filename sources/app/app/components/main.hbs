@@ -353,13 +353,13 @@ span.invalid-message.active {
           </svg>
         {{/if}}
       </button>
-      <label for="message_input" class="{{if this.enteredHashData.hashData ' active'}}">Enter message to leave on lcation LAT: {{this.lat}} LON: {{this.lon}}</label>
+      <label for="message_input" class="{{if this.enteredHashData.hashData ' active'}}">Enter message to leave on location LAT: {{this.lat}} LON: {{this.lon}}</label>
     </div>
     
       <button class="btn mint" disabled={{if this.hasValidMessage '' 'disabled'}} type="button" {{action this.mintMessage}}><span><Ux::InlineLoader @active={{this.isMinting}}/>LEAVE MESSAGE</span></button>
     </div>
   {{/if}}
-  {{#if this.myLocation}}
+  {{#if this.isAppReady}}
 
     <div class="results-showcase{{if this.hasMessages ' has-results'}}">
       <span class="clear-results" {{on 'click' (fn this.clearMessages)}}>clear</span>
@@ -373,7 +373,8 @@ span.invalid-message.active {
 
     </div>
   
-  {{else}}
+  {{/if}}
+  {{#if (not this.isTracking)}}
   <div class="messagetitle">
     Press START to begin location tracking
   </div>
