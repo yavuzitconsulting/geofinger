@@ -102,7 +102,7 @@ export default class MainComponent extends Component {
      
 
     } catch (reason) {
-      this.setAppErrorMessage(reason.data.reason);
+      this.setAppErrorMessage(this.getSolutionForErrorCode(reason.data.reason.match("\\[.*]")));
       this.toggleIsShowingErrorModal();
     } 
     this.isMinting = false;
@@ -214,4 +214,32 @@ console.log('retrievelocation, requestpending: ' + this.isRequestPending);
   @action showHowToRequestGeoLocationPermission() {
     this.toggleEnableGeoLocationModal();
   }
+
+
+
+  //expects the code without brackets
+  getSolutionForErrorCode(code)
+  {
+    return this._requireSolutions[this._requireSolutions.indexOf(code) + 1];
+  }
+
+
+
+
+
+
+_requireSolutions =
+[
+  '[RQ001]', 'Please come back later, if possible, keep up with our social media to stay informed about any issues',
+  '[RQ002]', 'Type something into the message field!',
+  '[RQ003]', 'You do not have enough fame! Claiming a new location will give you fame, alternatively, wait until some of your messages gather upvotes and earn you fame!',
+  '[RQ004]', 'There might have been an error with your location service, refresh the page, if that does not work, restart your device.',
+  '[RQ005]', 'You did not unlock this message, this has to be an error in the application, refresh and try again, if that does not work, wait a few minutes and try again.',
+  '[RQ006]', 'You do not have enough fame to vote! Claiming a new location will give you fame, alternatively, wait until some of your messages gather upvotes and earn you fame!',        
+  '[RQ007]', 'There has been an internal error in the application! Please refresh the page, if the error persists, restart your device!',
+  '[RQ008]', 'You do not have enough fame for this action!  Claiming a new location will give you fame, alternatively, wait until some of your messages gather upvotes and earn you fame!',
+  '[RQ009]', 'You do not have messagecoins for this spot! You can convert fame into messageCoins and create messages, either do this manually or enable autoConvert!'
+]
+
+
 }

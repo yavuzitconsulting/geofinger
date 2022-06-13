@@ -35,14 +35,14 @@ contract GeoFingerToken is Context, ERC165, IERC721, IERC721Metadata, Ownable {
     string[] _requireCodes = 
     [
         "[RQ001]", "Minting is currently not active",
-        "[RQ002]", "You cannot mint empty messages"
-        "[RQ003]", "You don't have enough fame! (at least 1 required for this action"
-        "[RQ004]", "You are trying to unlock a message from a spot that has no messages!"
-        "[RQ005]", "this message was never unlocked with fame"
+        "[RQ002]", "You cannot mint empty messages",
+        "[RQ003]", "You don't have enough fame! (at least 1 required for this action)",
+        "[RQ004]", "You are trying to unlock a message from a spot that has no messages!",
+        "[RQ005]", "this message was never unlocked with fame",
         "[RQ006]", "you do not have enough fame to vote",        
         "[RQ007]", "the message you are trying to vote on does not exist in this spot",
         "[RQ008]", "not enough fame",
-        "[RQ009]", "you do not have any messagecoins frot his spot!"
+        "[RQ009]", "you do not have any messagecoins for this spot!"
     ];  
 
     // Mapping from SpotId to TokenId
@@ -163,7 +163,7 @@ contract GeoFingerToken is Context, ERC165, IERC721, IERC721Metadata, Ownable {
                 _substring(
                     messagesForSpot[i],
                     0,
-                    (uint16(bytes(messagesForSpot[i]).length / 10)) + 3
+                    (uint16(bytes(messagesForSpot[i]).length / 5)) + 3
                 )
                 ,
                 uint128(i + uint128(spotId) * _maxMessageTokenPerSpot)
@@ -318,7 +318,7 @@ contract GeoFingerToken is Context, ERC165, IERC721, IERC721Metadata, Ownable {
             _convertFameToMessageCoin(spotId);
         }
 
-        require(_getMessageCoinBalanceForSpot(spotId) > 0, '[RQ009] you do not have any messagecoins frot his spot!');
+        require(_getMessageCoinBalanceForSpot(spotId) > 0, '[RQ009] you do not have any messagecoins for this spot!');
 
         uint128 messageTokenId = uint128(
             (_spotMessages[spotId].length) + uint128(spotId) * _maxMessageTokenPerSpot

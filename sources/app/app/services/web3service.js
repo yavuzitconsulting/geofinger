@@ -761,7 +761,7 @@ export default class Web3service extends Service.extend({}) {
   ] //abi goes here
   //_web3addr = 'https://yitc.ddns.net:8545';
   _web3addr = 'http://127.0.0.1:9545';
-  _geofinger_contract_address = '0xC217cDdA117D608B2010e388CC5C717F91b9aD5e';
+  _geofinger_contract_address = '0xF661395ED23A2C523059484dfe867B2551d14D21';
   _lweb3 = new Web3(this._web3addr);
   _directNetworkContract = new this._lweb3.eth.Contract(this._abi, this._geofinger_contract_address);
   _metamask = null;
