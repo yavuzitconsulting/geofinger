@@ -122,7 +122,7 @@ contract GeoFingerToken is Context, ERC165, IERC721, IERC721Metadata, Ownable {
             
             _addMessageCoin(spotId);
             
-            _addFameCoin(_msgSender(), 20);
+            _addFameCoin(_msgSender(), 200);
             _claimedSpots[spotId] = tokenId;
             emit SpotClaimed(_msgSender(), tokenId, spotId);
         }
