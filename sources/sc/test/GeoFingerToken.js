@@ -72,19 +72,6 @@ contract('GeoFingerToken: full integration', async (accounts) => {
       let token = await tokenContract.deployed();   
       await truffleAssertions.passes(token.mintMessage('test-message',525555555,98888888, true,{from:accounts[1]}), 'mint failed');
       
-    //   await token.contract.getPastEvents('Transfer', {
-    //     fromBlock: 0,
-    //     toBlock: 'latest'
-    // }, function(error, events){ 
-    //     //console.log(events); 
-    // })
-    // .then(function(events){
-    //     let event = events[events.length - 1];
-    //     //console.log('TokenId! ' + event.returnValues.tokenId); 
-    //     mTokenId = event.returnValues.tokenId;
-    // });
-    // assert.isTrue(mTokenId >= 0, 'the token id is not valid');
-
     });
 
 
@@ -120,7 +107,7 @@ contract('GeoFingerToken: full integration', async (accounts) => {
       let token = await tokenContract.deployed();   
       await truffleAssertions.passes(token.mintMessage('test-message',535555555,99888888, true,{gas:1000000} ), 'mint failed');
       let teasedMessages = await token.getTeasedMessagesForSpot(535555555,99888888,{from:accounts[1]});
-      console.log('TEST: ' + teasedMessages);
+    
       return assert.isTrue(teasedMessages.length >= 1);
     });
 
@@ -151,7 +138,7 @@ contract('GeoFingerToken: full integration', async (accounts) => {
       assert.isTrue(length > 0);
       
       let fullmessage = await token.getUnlockedMessage(teasedMessages[0].tokenId,{from:accounts[1]});
-     console.log('fullmsg '  +fullmessage);
+     
      assert.isTrue(fullmessage.length > length);
     });
 
@@ -183,6 +170,16 @@ contract('GeoFingerToken: full integration', async (accounts) => {
       let token = await tokenContract.deployed();   
       let balance = await token.getFameCoinBalance();
       return assert.isTrue(balance > 0);
+    });
+
+    
+    it("should allow anyone view a list of possible revert messages and reasons", async function () {
+      /*
+        getPossibleRevertMessages()
+      */
+      let token = await tokenContract.deployed();   
+      let messages = await token.getPossibleRevertMessages();
+      return assert.isTrue(messages.length > 0);
     });
 
 

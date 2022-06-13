@@ -12,7 +12,14 @@
   width: 100%;
   display: flex;
   flex-direction: column;
-  
+  overflow-x: hidden;
+  overflow-y: auto;
+  max-height: 53vh;
+  -ms-overflow-style: none;  /* Internet Explorer 10+ */
+  scrollbar-width: none;  /* Firefox */ 
+}
+.results::-webkit-scrollbar { 
+  display: none;  /* Safari and Chrome */
 }
 
 .results .result{
@@ -330,6 +337,9 @@ animation: glow 4s ease-in-out infinite alternate;
 }
   /*  fileupload */
 
+  div.modal{
+    color: black;
+  }
 
 div.status
 {

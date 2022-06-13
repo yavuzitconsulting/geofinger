@@ -7,6 +7,14 @@ export default class ApplicationRoute extends Route {
     
     hasWalletEventsSet = false;
     async beforeModel() {
+
+      try{
+        this.web3service.connect();
+      }
+      catch(exc)
+      {
+        
+      }
       if(window.ethereum)
       {
         await this.web3service.getIsMintingActive();

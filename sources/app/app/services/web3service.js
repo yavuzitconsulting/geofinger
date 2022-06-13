@@ -761,7 +761,7 @@ export default class Web3service extends Service.extend({}) {
   ] //abi goes here
   //_web3addr = 'https://yitc.ddns.net:8545';
   _web3addr = 'http://127.0.0.1:9545';
-  _geofinger_contract_address = '0xbb09238371F4813c7EB64EEc03D790CA77f53Dc1';
+  _geofinger_contract_address = '0xC217cDdA117D608B2010e388CC5C717F91b9aD5e';
   _lweb3 = new Web3(this._web3addr);
   _directNetworkContract = new this._lweb3.eth.Contract(this._abi, this._geofinger_contract_address);
   _metamask = null;
@@ -857,7 +857,7 @@ export default class Web3service extends Service.extend({}) {
 
     console.debug('ACCOUNT:' + window.ethereum.selectedAddress);
 
-
+  let success = false;
     let currentGasPrice = this._lweb3.utils.numberToHex(await this._lweb3.eth.getGasPrice());
     console.debug('currentGasPrice: ' + currentGasPrice);
     let estimatedGasSpending = this._lweb3.utils.numberToHex(await this._directNetworkContract.methods.mintMessage(message, lon, lat, autoconvert).estimateGas({ from: this.connectedAccount }));
@@ -872,6 +872,7 @@ export default class Web3service extends Service.extend({}) {
       .on('confirmation', function (confirmationNumber, receipt) {
 
         console.debug('confirmation no: ' + confirmationNumber);
+        success = true;
       })
       .on('receipt', function (receipt) {
         // receipt example
@@ -888,15 +889,13 @@ export default class Web3service extends Service.extend({}) {
    getMessageCoinBalanceForSpot(uint32 longitude, uint32 latitude)
    */
   async getMessageCoinBalanceForSpot(lon, lat) {
-
-
+    const balance = await this._directNetworkContract.methods.getMessageCoinBalanceForSpot( lon, lat).call({ from: this.connectedAccount });
     return balance;
   }
   /*
 getTeasedMessagesForSpot(uint32 longitude, uint32 latitude)
 */
   async getTeasedMessagForSpot(lon, lat) {
-
     const teasedMessages = await this._directNetworkContract.methods.getTeasedMessagesForSpot( lon, lat).call({ from: this.connectedAccount });
     return teasedMessages;
   }
@@ -905,7 +904,7 @@ getTeasedMessagesForSpot(uint32 longitude, uint32 latitude)
 getUnlockedMessage(uint128 messageTokenId)
 */
   async getUnlockedMessage(messageTokenId) {
-
+    const message = await this._directNetworkContract.methods.getUnlockedMessage(messageTokenId).call({ from: this.connectedAccount });
     return message;
   }
   /*
@@ -925,19 +924,19 @@ convertFameToMessageCoin(uint32 longitude, uint32 latitude)
   /*
 getFameCoinBalance()
 */
-  async getFameCoinBalance(lon, lat) {
+  async getFameCoinBalance() {
+    const balance = await this._directNetworkContract.methods.getFameCoinBalance().call({ from: this.connectedAccount });   
+    return balance;
+  }
 
-
+  async getMessageCoinBalanceForSpot(lon, lat)
+  {
+    const balance = await this._directNetworkContract.methods.getMessageCoinBalanceForSpot(lon, lat).call({ from: this.connectedAccount });   
     return balance;
   }
 
   async getIsMintingActive() {
-    // let this.lweb3 = new Web3('http://127.0.0.1:9545');
-
-
     console.debug('asking contract if minting is active');
-
-
     let res = await this._directNetworkContract.methods.getIsMintingActive();
     console.debug('result: ' + res);
     this._isMintingActive = res;

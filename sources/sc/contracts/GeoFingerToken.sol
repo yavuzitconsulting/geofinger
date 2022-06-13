@@ -31,7 +31,19 @@ contract GeoFingerToken is Context, ERC165, IERC721, IERC721Metadata, Ownable {
         uint128 tokenId;
     }
 
-    //ERC721
+    //POSSIBLE MESSAGE CODES AND MEANINGS
+    string[] _requireCodes = 
+    [
+        "[RQ001]", "Minting is currently not active",
+        "[RQ002]", "You cannot mint empty messages"
+        "[RQ003]", "You don't have enough fame! (at least 1 required for this action"
+        "[RQ004]", "You are trying to unlock a message from a spot that has no messages!"
+        "[RQ005]", "this message was never unlocked with fame"
+        "[RQ006]", "you do not have enough fame to vote",        
+        "[RQ007]", "the message you are trying to vote on does not exist in this spot",
+        "[RQ008]", "not enough fame",
+        "[RQ009]", "you do not have any messagecoins frot his spot!"
+    ];  
 
     // Mapping from SpotId to TokenId
     mapping(uint64 => uint256) private _claimedSpots;
@@ -103,6 +115,10 @@ contract GeoFingerToken is Context, ERC165, IERC721, IERC721Metadata, Ownable {
         _isMintingActive = false;
     }
 
+    function getPossibleRevertMessages() public view returns (string[] memory)
+    {
+    return _requireCodes;
+    }
 
     function mintMessage(
         string memory uniCodeMessage,
@@ -110,8 +126,8 @@ contract GeoFingerToken is Context, ERC165, IERC721, IERC721Metadata, Ownable {
         uint32 latitude,
         bool autoConvertFame
     ) public {
-        require(_isMintingActive, "Minting is currently not active");
-        require(bytes(uniCodeMessage).length > 0);
+        require(_isMintingActive,  "[RQ001] Minting is currently not active");
+        require(bytes(uniCodeMessage).length > 0,"[RQ002] You cannot mint empty messages");
 
         uint64 spotId = _getSpotIdForCoordinates(longitude, latitude);
 
@@ -162,8 +178,8 @@ contract GeoFingerToken is Context, ERC165, IERC721, IERC721Metadata, Ownable {
         public
     {
         uint64 spotId = _getSpotIdFromMessageTokenId(messageTokenId);
-        require(_fameWallet[_msgSender()] > 0);
-        require(_spotMessages[spotId].length > 0);
+        require(_fameWallet[_msgSender()] > 0,      "[RQ003] You don't have enough fame! (at least 1 required for this action");
+        require(_spotMessages[spotId].length > 0,   "[RQ004] You are trying to unlock a message from a spot that has no messages!");
         _fameWallet[_msgSender()]--;
 
         _addFameCoin(_messageCreators[messageTokenId], 2); // an upvote earns you 1 famecoin1
@@ -176,17 +192,18 @@ contract GeoFingerToken is Context, ERC165, IERC721, IERC721Metadata, Ownable {
 
     function getUnlockedMessage(uint128 messageTokenId) public view returns (string memory)
     {
-        require(_ownerUnlockedMessages[_msgSender()][messageTokenId] == true, 'this message was never unlocked with fame');
+        require(_ownerUnlockedMessages[_msgSender()][messageTokenId] == true, '[RQ005] this message was never unlocked with fame');
         return _spotMessages[_getSpotIdFromMessageTokenId(messageTokenId)][_getMessageIndexFromMessageTokenId(messageTokenId)];
     }
 
 
     function upvoteMessage(uint128 messageTokenId) public {
         uint64 spotId = _getSpotIdFromMessageTokenId(messageTokenId);
-        require(_fameWallet[_msgSender()] > 0);
+        require(_fameWallet[_msgSender()] > 0,'[RQ006] you do not have enough fame to vote');
         require(
             _spotMessages[spotId].length >
                 _getMessageIndexFromMessageTokenId(messageTokenId)
+                ,'[RQ007] the message you are trying to vote on does not exist in this spot'
         );
         _fameWallet[_msgSender()]--;
         _voteWallet[messageTokenId]++;
@@ -271,7 +288,7 @@ contract GeoFingerToken is Context, ERC165, IERC721, IERC721Metadata, Ownable {
 
     function _convertFameToMessageCoin(uint64 spotId) internal {
         uint16 cost = uint16(20 + uint16(_spotMessages[spotId].length / 10));
-        require(_fameWallet[_msgSender()] >= cost,'not enough fame');
+        require(_fameWallet[_msgSender()] >= cost,'[RQ008] not enough fame');
 
         _fameWallet[_msgSender()] -= cost; // means, 2 messages in this spot cost nothing extra, 20 will cost 2 extra, 100 will cost 10 extra
         _spotWallet[spotId][_msgSender()]++;
@@ -301,7 +318,7 @@ contract GeoFingerToken is Context, ERC165, IERC721, IERC721Metadata, Ownable {
             _convertFameToMessageCoin(spotId);
         }
 
-        require(_getMessageCoinBalanceForSpot(spotId) > 0);
+        require(_getMessageCoinBalanceForSpot(spotId) > 0, '[RQ009] you do not have any messagecoins frot his spot!');
 
         uint128 messageTokenId = uint128(
             (_spotMessages[spotId].length) + uint128(spotId) * _maxMessageTokenPerSpot

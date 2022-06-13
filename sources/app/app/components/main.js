@@ -13,12 +13,14 @@ export default class MainComponent extends Component {
   @tracked enteredMessage =''
   @tracked invalidMessage =""
   @tracked isMinting=false;
-  @tracked isShowingModal = false;
+  @tracked isShowingEnableGeoLocationModal = false;
+  @tracked isShowingErrorModal = false;
   @service web3service;
   
   @tracked statusMessage = '';
   @tracked bigStatus = 'please wait a few seconds while i fetch your location!';
   isRequestPending = false;
+  appErrorMessage = '';
   blockchainRetries = 1;
   arithmeticLocation = {lat: 0, lon: 0}
 
@@ -78,11 +80,17 @@ export default class MainComponent extends Component {
     this.isRequestPending = false;
   }
 
-  @action toggleModal() {
-    this.isShowingModal = !this.isShowingModal;
+  @action toggleEnableGeoLocationModal() {
+    this.isShowingEnableGeoLocationModal = !this.isShowingEnableGeoLocationModal;
+  }
+
+  @action toggleIsShowingErrorModal()
+  {
+    this.isShowingErrorModal = !this.isShowingErrorModal;
   }
 
   @action reloadWindow() {
+    this.toggleEnableGeoLocationModal();
     window.location.reload();
   }
 
@@ -94,9 +102,11 @@ export default class MainComponent extends Component {
      
 
     } catch (reason) {
-      this.setStatusMessage(reason);
+      this.setAppErrorMessage(reason.data.reason);
+      this.toggleIsShowingErrorModal();
     } 
     this.isMinting = false;
+    this.enteredMessage = '';
   }
 
   @action async setUserLocation() {
@@ -162,6 +172,10 @@ console.log('retrievelocation, requestpending: ' + this.isRequestPending);
     this.statusMessage = msg;
   }
 
+  setAppErrorMessage(msg) {
+    this.appErrorMessage = msg;
+  }
+
   performInfinite() {
     setTimeout(
       function (that) {
@@ -198,6 +212,6 @@ console.log('retrievelocation, requestpending: ' + this.isRequestPending);
 
 
   @action showHowToRequestGeoLocationPermission() {
-    this.toggleModal();
+    this.toggleEnableGeoLocationModal();
   }
 }
